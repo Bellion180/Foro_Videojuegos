@@ -25,7 +25,7 @@ import type { Thread } from "../../core/models/thread.model"
           </div>
         </div>
         <div class="hero-image">
-          <img src="/assets/images/hero-image.png" alt="Gaming illustration" />
+          <img src="logo.jpg" alt="Gaming illustration" />
         </div>
       </section>
 

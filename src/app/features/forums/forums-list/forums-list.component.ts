@@ -1,13 +1,13 @@
-import { Component, OnInit } from "@angular/core";
-import { RouterLink } from "@angular/router";
-import { ForumService } from "../../../core/services/forum.service"; // Import regular
-import { Forum } from "../../../core/models/forum.model"; // Cambiado a import regular si es una clase
-import { CommonModule } from '@angular/common'; // Necesario para *ngIf
+import { Component, type OnInit } from "@angular/core"
+import { RouterLink } from "@angular/router"
+import { CommonModule } from "@angular/common"
+import { ForumService } from "../../../core/services/forum.service"
+import type { Forum } from "../../../core/models/forum.model"
 
 @Component({
   selector: "app-forums-list",
   standalone: true,
-  imports: [RouterLink, CommonModule], // Importar CommonModule para usar *ngIf
+  imports: [RouterLink, CommonModule],
   template: `
     <div class="forums-container">
       <header class="page-header">
@@ -38,9 +38,9 @@ import { CommonModule } from '@angular/common'; // Necesario para *ngIf
             </div>
             <div class="forum-last-post" *ngIf="forum.lastPost">
               <div class="last-post-info">
-                <span class="post-title">{{ forum.lastPost.title }}</span>
-                <span class="post-meta">
-                  by {{ forum.lastPost.author.username }} • {{ forum.lastPost.date | date:'short' }}
+                <span class="post-title">{{ forum.lastPost?.title }}</span>
+                <span class="post-meta" *ngIf="forum.lastPost?.author">
+                  by {{ forum.lastPost?.author?.username }} • {{ forum.lastPost?.date | date:'short' }}
                 </span>
               </div>
             </div>
