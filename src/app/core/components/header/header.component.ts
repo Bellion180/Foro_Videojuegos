@@ -1,0 +1,313 @@
+import { Component } from "@angular/core"
+import { RouterLink, RouterLinkActive } from "@angular/router"
+import { NgClass, CommonModule } from "@angular/common"
+import { AuthService } from "../../services/auth.service"
+import { SmoothScrollDirective } from "../../directives/smooth-scroll.directive"
+import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component"
+
+@Component({
+  selector: "app-header",
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive, CommonModule, ThemeToggleComponent],
+  template: `
+    <header class="header" [class.scrolled]="isScrolled">
+      <div class="header-container">
+        <div class="logo">
+          <a routerLink="/">
+            <span class="logo-icon">🎮</span>
+            <span class="logo-text">Gamers<span class="logo-highlight">Hub</span></span>
+          </a>
+        </div>
+        
+        <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+        
+        <nav class="nav" [class.active]="mobileMenuOpen">
+          <ul class="nav-list">
+            <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+            <li><a routerLink="/forums" routerLinkActive="active">Forums</a></li>
+            <li><a routerLink="/threads/latest" routerLinkActive="active">Latest Discussions</a></li>
+            <li class="theme-toggle-container"><app-theme-toggle></app-theme-toggle></li>
+            @if (authService.isLoggedIn()) {
+              <li class="dropdown">
+                <a class="dropdown-toggle">
+                  <span class="user-avatar">
+                    <img src="/assets/images/default-avatar.png" alt="User avatar">
+                  </span>
+                  <span>My Account</span>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+                  <li><a routerLink="/profile/edit" routerLinkActive="active">Settings</a></li>
+                  <li><button (click)="logout()" class="logout-btn">Logout</button></li>
+                </ul>
+              </li>
+            } @else {
+              <li><a routerLink="/auth/login" routerLinkActive="active" class="login-btn">Login</a></li>
+              <li><a routerLink="/auth/register" routerLinkActive="active" class="register-btn">Register</a></li>
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+  `,
+  styles: [
+    `
+    .header {
+      background-color: var(--header-bg);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--header-shadow);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      padding: 0.75rem 0;
+      transition: all 0.3s ease;
+      height: 70px; /* Altura fija para el header */
+      display: flex;
+      align-items: center;
+    }
+    
+    .header.scrolled {
+      background-color: var(--header-bg);
+      box-shadow: var(--header-shadow);
+      height: 60px; /* Altura ligeramente menor al hacer scroll */
+    }
+    
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .logo a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: bold;
+      color: var(--dark);
+      text-decoration: none;
+    }
+    .logo-icon {
+      font-size: 1.75rem;
+    }
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .logo-highlight {
+      color: var(--primary);
+    }
+    .nav-list {
+      display: flex;
+      list-style: none;
+      gap: 1.5rem;
+      margin: 0;
+      padding: 0;
+      align-items: center;
+    }
+    .nav-list a {
+      color: var(--dark);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--border-radius);
+      transition: all 0.3s;
+    }
+    .nav-list a:hover, .nav-list a.active {
+      color: var(--primary);
+      background-color: rgba(126, 34, 206, 0.1);
+    }
+    .login-btn, .register-btn {
+      padding: 0.5rem 1.25rem !important;
+      border-radius: 9999px !important;
+    }
+    .login-btn {
+      border: 2px solid var(--primary);
+    }
+    .register-btn {
+      background-color: var(--primary);
+      color: white !important;
+    }
+    .register-btn:hover {
+      background-color: var(--primary-dark);
+      color: white !important;
+    }
+    .mobile-menu-btn {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 30px;
+      height: 21px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      z-index: 10;
+    }
+    .bar {
+      height: 3px;
+      width: 100%;
+      background-color: var(--dark);
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+    .dropdown {
+      position: relative;
+    }
+    .dropdown-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--primary);
+    }
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 0.5rem;
+      min-width: 180px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: all 0.3s;
+    }
+    .dropdown:hover .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .dropdown-menu li {
+      margin: 0;
+    }
+    .dropdown-menu a, .dropdown-menu button {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: var(--dark);
+      text-decoration: none;
+      border-radius: var(--border-radius);
+      transition: all 0.3s;
+      text-align: left;
+      width: 100%;
+      font-size: 0.9rem;
+      background: none;
+      border: none;
+    }
+    .dropdown-menu a:hover, .dropdown-menu button:hover {
+      background-color: rgba(126, 34, 206, 0.1);
+      color: var(--primary);
+    }
+    .logout-btn {
+      color: var(--danger) !important;
+    }
+    .logout-btn:hover {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      color: var(--danger) !important;
+    }
+    @media (max-width: 768px) {
+      .header-container {
+        padding: 0 1rem;
+      }
+      .mobile-menu-btn {
+        display: flex;
+      }
+      .nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        background-color: white;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+        padding: 5rem 1.5rem 2rem;
+        z-index: 5;
+      }
+      .nav.active {
+        right: 0;
+      }
+      .nav-list {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      .nav-list a {
+        display: block;
+        width: 100%;
+      }
+      .dropdown {
+        width: 100%;
+      }
+      .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        padding: 0;
+        margin-top: 0.5rem;
+        margin-left: 1rem;
+        width: 100%;
+      }
+    }
+    .theme-toggle-container {
+      display: flex;
+      align-items: center;
+      margin-right: 0.5rem;
+    }
+  `,
+  ],
+})
+export class HeaderComponent {
+  mobileMenuOpen = false
+  isScrolled = false
+
+  constructor(public authService: AuthService) {
+    // Detectar scroll para cambiar el estilo del header
+    if (typeof window !== "undefined") {
+      window.addEventListener("scroll", this.handleScroll)
+    }
+  }
+
+  handleScroll = () => {
+    this.isScrolled = window.scrollY > 30
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen
+  }
+
+  logout(): void {
+    this.authService.logout()
+    this.mobileMenuOpen = false
+  }
+
+  ngOnDestroy() {
+    // Limpiar el event listener cuando se destruye el componente
+    if (typeof window !== "undefined") {
+      window.removeEventListener("scroll", this.handleScroll)
+    }
+  }
+}
