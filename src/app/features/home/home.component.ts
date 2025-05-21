@@ -25,7 +25,7 @@ import type { Thread } from "../../core/models/thread.model"
           </div>
         </div>
         <div class="hero-image">
-          <img src="logo.jpg" alt="Gaming illustration" />
+          <img src="logotipo2.png" alt="Gaming illustration" />
         </div>
       </section>
 
@@ -501,7 +501,7 @@ export class HomeComponent implements OnInit {
     this.loadStats()
   }
 
-  loadForums(): void {
+loadForums(): void {
   this.forumService.getForums().subscribe({
     next: (forums) => {
       this.popularForums = Array.isArray(forums) ? forums.slice(0, 6) : [];
