@@ -25,7 +25,7 @@ import type { Thread } from "../../core/models/thread.model"
           </div>
         </div>
         <div class="hero-image">
-          <img src="logo.jpg" alt="Gaming illustration" />
+          <img src="logotipo2.png" alt="Gaming illustration" />
         </div>
       </section>
 
@@ -501,17 +501,29 @@ export class HomeComponent implements OnInit {
     this.loadStats()
   }
 
-  loadForums(): void {
-    this.forumService.getForums().subscribe((forums) => {
-      this.popularForums = forums.slice(0, 6)
-    })
-  }
+loadForums(): void {
+  this.forumService.getForums().subscribe({
+    next: (forums) => {
+      this.popularForums = Array.isArray(forums) ? forums.slice(0, 6) : [];
+    },
+    error: (err) => {
+      console.error('Error loading forums:', err);
+      this.popularForums = [];
+    }
+  });
+}
 
   loadRecentThreads(): void {
-    this.threadService.getThreads({ sort: "recent", limit: 5 }).subscribe((threads) => {
-      this.recentThreads = threads
-    })
-  }
+  this.threadService.getThreads({ sort: "recent", limit: 5 }).subscribe({
+    next: (threads) => {
+      this.recentThreads = Array.isArray(threads) ? threads : [];
+    },
+    error: (err) => {
+      console.error('Error loading threads:', err);
+      this.recentThreads = [];
+    }
+  });
+}
 
   loadStats(): void {
     // En una aplicación real, esto vendría de una API
