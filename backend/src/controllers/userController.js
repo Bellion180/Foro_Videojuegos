@@ -44,7 +44,7 @@ exports.getUserById = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params
-    const { username, email, bio, avatar } = req.body
+    const { username, email, bio } = req.body
 
     // Verificar que el usuario que hace la solicitud es el mismo que se va a actualizar
     // o es un administrador
@@ -63,7 +63,13 @@ exports.updateUser = async (req, res) => {
     if (username) user.username = username
     if (email) user.email = email
     if (bio !== undefined) user.bio = bio
-    if (avatar !== undefined) user.avatar = avatar
+
+    // Manejar el archivo de avatar si se ha subido
+    if (req.file) {
+      // Aquí, req.file.filename contiene el nombre del archivo guardado por multer
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      user.avatar = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+    }
 
     await userRepository.save(user)
 

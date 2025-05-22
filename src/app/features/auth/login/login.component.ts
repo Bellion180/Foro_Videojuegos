@@ -3,6 +3,7 @@ import { RouterLink, ActivatedRoute, Router } from "@angular/router"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { AuthService } from "../../../core/services/auth.service"
+import { NotificationService } from "../../../core/services/notification.service"
 
 @Component({
   selector: "app-login",
@@ -18,31 +19,68 @@ import { AuthService } from "../../../core/services/auth.service"
 
         @if (errorMessage) {
           <div class="error-message">{{ errorMessage }}</div>
-        }
-
-        <form class="auth-form" (ngSubmit)="login()">
+        }        <form class="auth-form" (ngSubmit)="login()" #loginForm="ngForm">
           <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" [(ngModel)]="email" name="email" required>
+            <input 
+              type="email" 
+              id="email" 
+              [(ngModel)]="email" 
+              name="email" 
+              #emailInput="ngModel"
+              required 
+              email
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+              [class.input-error]="emailInput.invalid && (emailInput.dirty || emailInput.touched)"
+            >
+            @if (emailInput.invalid && (emailInput.dirty || emailInput.touched)) {
+              <div class="validation-error">
+                @if (emailInput.errors?.['required']) {
+                  <span>Email is required</span>
+                } @else if (emailInput.errors?.['email'] || emailInput.errors?.['pattern']) {
+                  <span>Please enter a valid email address</span>
+                }
+              </div>
+            }
           </div>
 
           <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" [(ngModel)]="password" name="password" required>
+            <input 
+              type="password" 
+              id="password" 
+              [(ngModel)]="password" 
+              name="password" 
+              #passwordInput="ngModel"
+              required
+              minlength="6"
+              [class.input-error]="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)"
+            >
+            @if (passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)) {
+              <div class="validation-error">
+                @if (passwordInput.errors?.['required']) {
+                  <span>Password is required</span>
+                } @else if (passwordInput.errors?.['minlength']) {
+                  <span>Password must be at least 6 characters long</span>
+                }
+              </div>
+            }
             <div class="forgot-password">
               <a routerLink="/auth/forgot-password">Forgot password?</a>
             </div>
-          </div>
-
-          <div class="form-group">
+          </div>          <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
               <span>Remember me</span>
             </label>
           </div>
 
-          <button type="submit" class="btn primary" [disabled]="isLoading">
-            {{ isLoading ? 'Logging in...' : 'Log In' }}
+          <button 
+            type="submit" 
+            class="btn primary" 
+            [disabled]="isLoading || (loginForm.invalid && loginForm.touched)"
+          >
+            {{ isLoading ? 'Iniciando sesión...' : 'Iniciar sesión' }}
           </button>
         </form>
 
@@ -80,8 +118,7 @@ import { AuthService } from "../../../core/services/auth.service"
     }
     .auth-header p {
       color: #666;
-    }
-    .error-message {
+    }    .error-message {
       background-color: #fee2e2;
       color: #b91c1c;
       padding: 0.75rem;
@@ -107,6 +144,15 @@ import { AuthService } from "../../../core/services/auth.service"
       padding: 0.75rem;
       border: 1px solid #ddd;
       border-radius: 4px;
+      transition: border-color 0.3s ease;
+    }
+    .form-group input.input-error {
+      border-color: #dc2626;
+    }
+    .validation-error {
+      color: #dc2626;
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
     }
     .forgot-password {
       text-align: right;
@@ -171,12 +217,11 @@ export class LoginComponent {
   isLoading = false
   errorMessage = ""
   returnUrl = "/"
-
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-  ) {
+    private notificationService: NotificationService  ) {
     this.route.queryParams.subscribe((params) => {
       this.returnUrl = params["returnUrl"] || "/"
     })
@@ -184,19 +229,36 @@ export class LoginComponent {
 
   login(): void {
     if (!this.email || !this.password) {
-      this.errorMessage = "Please enter both email and password."
+      this.errorMessage = "Por favor, introduce tanto el email como la contraseña."
+      return
+    }
+
+    // Validate email format
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+    if (!emailRegex.test(this.email)) {
+      this.errorMessage = "Por favor, introduce un email válido."
+      return
+    }
+
+    // Validate password length
+    if (this.password.length < 6) {
+      this.errorMessage = "La contraseña debe tener al menos 6 caracteres."
       return
     }
 
     this.isLoading = true
     this.errorMessage = ""
-
-    this.authService.login(this.email, this.password).subscribe({
-      next: () => {
+    
+    this.authService.login(this.email, this.password, this.rememberMe).subscribe({
+      next: (user) => {
+        console.log('Login successful:', user);
+        this.notificationService.success(`¡Bienvenido ${user.username}! Has iniciado sesión correctamente.`);
         this.router.navigateByUrl(this.returnUrl)
       },
       error: (error) => {
-        this.errorMessage = error.message || "Login failed. Please check your credentials."
+        console.error('Login error:', error);
+        this.errorMessage = error.message || "Error en el inicio de sesión. Por favor, verifica tus credenciales."
+        this.notificationService.error(this.errorMessage);
         this.isLoading = false
       },
       complete: () => {

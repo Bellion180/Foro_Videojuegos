@@ -4,6 +4,7 @@ import { AuthService } from "../../../core/services/auth.service"; // Import reg
 import { User } from "../../../core/models/user.model"; // Puede mantenerse como type si es interfaz
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { NotificationService } from "../../../core/services/notification.service";
 
 
 @Component({
@@ -276,16 +277,15 @@ export class ProfileEditComponent implements OnInit {
   successMessage = ""
   isSaving = false
   isPasswordChanging = false
-
   constructor(
     private authService: AuthService,
     private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     this.loadUserProfile()
   }
-
   loadUserProfile(): void {
     const user = this.authService.getCurrentUser()
     if (user) {
@@ -295,87 +295,143 @@ export class ProfileEditComponent implements OnInit {
         email: user.email,
         bio: user.bio || "",
       }
+    } else {
+      this.errorMessage = "No se pudo cargar el perfil de usuario";
+      this.notificationService.error(this.errorMessage);
+      // Redirigir al inicio de sesión si no hay usuario
+      setTimeout(() => {
+        this.router.navigate(['/auth/login']);
+      }, 2000);
     }
   }
-
   onAvatarSelected(event: any): void {
     const file = event.target.files[0]
     if (file) {
-      // Check file size (2MB limit)
+      // Verificar tipo de archivo (solo imágenes)
+      if (!file.type.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
+        this.errorMessage = "Solo se permiten archivos de imagen (JPEG, PNG, GIF, WebP)";
+        this.notificationService.warning(this.errorMessage);
+        return;
+      }
+
+      // Verificar tamaño del archivo (2MB máximo)
       if (file.size > 2 * 1024 * 1024) {
-        this.errorMessage = "File size exceeds 2MB limit."
-        return
+        this.errorMessage = "El tamaño del archivo excede el límite de 2MB";
+        this.notificationService.warning(this.errorMessage);
+        return;
       }
 
-      this.avatarFile = file
+      this.avatarFile = file;
+      this.errorMessage = "";
 
-      // Create a preview of the selected image
-      const reader = new FileReader()
+      // Crear una vista previa de la imagen seleccionada
+      const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.avatarPreview = e.target.result
-      }
-      reader.readAsDataURL(file)
+        this.avatarPreview = e.target.result;
+      };
+      reader.onerror = () => {
+        this.errorMessage = "Error al leer el archivo";
+        this.notificationService.error(this.errorMessage);
+      };
+      reader.readAsDataURL(file);
     }
   }
-
   removeAvatar(): void {
-    this.avatarFile = null
-    this.avatarPreview = null
-  }
-
-  saveProfile(): void {
+    this.avatarFile = null;
+    this.avatarPreview = null;
+    this.notificationService.info("Imagen de perfil eliminada. Guarda los cambios para confirmar.");
+  }saveProfile(): void {
     this.errorMessage = ""
     this.successMessage = ""
     this.isSaving = true
 
-    // In a real app, this would call an API endpoint
-    setTimeout(() => {
-      this.isSaving = false
-      this.successMessage = "Profile updated successfully!"
+    if (!this.user) {
+      this.errorMessage = "No se pudo cargar el perfil de usuario";
+      this.notificationService.error(this.errorMessage);
+      this.isSaving = false;
+      return;
+    }
 
-      // Update the user object with new data
-      if (this.user) {
-        this.user.username = this.formData.username
-        this.user.bio = this.formData.bio
+    // Prepare user data for update
+    const userData: Partial<User> = {
+      username: this.formData.username,
+      bio: this.formData.bio
+    };
 
-        // In a real app, you would upload the avatar file to a server
-        if (this.avatarFile) {
-          // Simulate avatar update
-          console.log("Avatar file would be uploaded:", this.avatarFile)
+    this.authService.updateProfile(this.user.id, userData, this.avatarFile || undefined).subscribe({
+      next: (updatedUser) => {
+        this.isSaving = false;
+        this.successMessage = "Perfil actualizado correctamente";
+        this.notificationService.success(this.successMessage);
+        
+        // Update the local user object with the response
+        this.user = updatedUser;
+        
+        // Keep the avatar preview in sync
+        if (this.avatarFile && this.avatarPreview) {
+          // The avatar preview stays valid because we successfully updated
+        } else {
+          // Reset the avatar preview to match the updated user
+          this.avatarPreview = null;
         }
+      },
+      error: (error) => {
+        this.isSaving = false;
+        this.errorMessage = error.message || "Error al actualizar el perfil";
+        this.notificationService.error(this.errorMessage);
+        console.error("Error updating profile:", error);
       }
-    }, 1500)
-  }
-
-  changePassword(): void {
+    });
+  }  changePassword(): void {
     if (!this.passwordData.currentPassword || !this.passwordData.newPassword || !this.passwordData.confirmPassword) {
       this.errorMessage = "Please fill in all password fields."
+      this.notificationService.warning(this.errorMessage);
       return
     }
 
     if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
       this.errorMessage = "New passwords do not match."
+      this.notificationService.warning(this.errorMessage);
       return
     }
 
     if (this.passwordData.newPassword.length < 8) {
       this.errorMessage = "New password must be at least 8 characters long."
+      this.notificationService.warning(this.errorMessage);
       return
+    }
+
+    if (!this.user) {
+      this.errorMessage = "No se pudo cargar el perfil de usuario";
+      this.notificationService.error(this.errorMessage);
+      return;
     }
 
     this.errorMessage = ""
     this.successMessage = ""
     this.isPasswordChanging = true
 
-    // In a real app, this would call an API endpoint
-    setTimeout(() => {
-      this.isPasswordChanging = false
-      this.successMessage = "Password changed successfully!"
-      this.passwordData = {
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+    this.authService.changePassword(
+      this.user.id, 
+      this.passwordData.currentPassword,
+      this.passwordData.newPassword
+    ).subscribe({
+      next: () => {
+        this.isPasswordChanging = false;
+        this.successMessage = "Password changed successfully!";
+        this.notificationService.success(this.successMessage);
+        this.passwordData = {
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        };
+      },
+      error: (error) => {
+        this.isPasswordChanging = false;
+        this.errorMessage = error.message || "Error changing password. Please check your current password.";
+        this.notificationService.error(this.errorMessage);
+        console.error("Error changing password:", error);
       }
-    }, 1500)
+    });
   }
 }

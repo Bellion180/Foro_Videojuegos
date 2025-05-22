@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const dotenv = require("dotenv")
+const path = require("path")
 const { createConnection } = require("typeorm")
 const routes = require("./routes")
 const dbConfig = require("./config/database")
@@ -21,6 +22,9 @@ app.use(
   }),
 )
 app.use(express.json())
+
+// Configurar carpeta de archivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')))
 
 // Rutas
 app.use("/api", routes)

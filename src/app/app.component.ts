@@ -4,21 +4,22 @@ import { HeaderComponent } from "./core/components/header/header.component"
 import { FooterComponent } from "./core/components/footer/footer.component"
 import { SidebarComponent } from "./core/components/sidebar/sidebar.component"
 import { AnimatedBackgroundComponent } from "./core/components/animated-background/animated-background.component"
+import { NotificationsComponent } from "./core/components/notifications/notifications.component"
 import { CommonModule } from "@angular/common"
 
 @Component({
   selector: "app-root",
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     RouterOutlet,
     HeaderComponent,
     FooterComponent,
     SidebarComponent,
     AnimatedBackgroundComponent,
+    NotificationsComponent,
     CommonModule,
-  ],
-  template: `
+  ],  template: `
     <app-animated-background></app-animated-background>
+    <app-notifications></app-notifications>
     <div class="app-container" id="top">
       <app-header></app-header>
       <div class="content-container">
