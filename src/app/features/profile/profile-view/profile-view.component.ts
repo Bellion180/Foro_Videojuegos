@@ -228,7 +228,14 @@ export class ProfileViewComponent implements OnInit {
   }
 
   loadUserProfile(): void {
-    this.user = this.authService.getCurrentUser()
+    const currentUser = this.authService.getCurrentUserValue();
+    if (currentUser === undefined) {
+      // Auth status is still loading/unknown, treat as user not loaded yet
+      this.user = null;
+    } else {
+      // Auth status is known, currentUser is User | null
+      this.user = currentUser;
+    }
   }
 
   loadRecentActivity(): void {

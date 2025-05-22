@@ -4,6 +4,10 @@ const userController = require("../controllers/userController")
 const { verifyToken, checkRole } = require("../middleware/auth")
 const upload = require("../middleware/upload")
 
+// Ruta para obtener el perfil del usuario autenticado
+// IMPORTANTE: Esta ruta debe estar ANTES de las rutas con parámetros como /:id
+router.get("/me/profile", verifyToken, userController.getMe);
+
 // Rutas públicas
 router.get("/:id", userController.getUserById)
 

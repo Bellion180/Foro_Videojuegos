@@ -40,6 +40,35 @@ exports.getUserById = async (req, res) => {
   }
 }
 
+// Obtener el perfil del usuario autenticado (nuevo método)
+exports.getMe = async (req, res) => {
+  try {
+    console.log("getMe controller called, user from token:", req.user);
+    const userId = req.user.id; // ID del usuario obtenido del token verificado
+    
+    if (!userId) {
+      console.error("No se encontró ID de usuario en el token");
+      return res.status(400).json({ message: "Token de autenticación inválido" });
+    }
+    
+    const userRepository = getRepository(User);
+
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      select: ["id", "username", "email", "avatar", "bio", "joinDate", "role"],
+    });
+
+    if (!user) {
+      console.error(`Usuario con ID ${userId} no encontrado en la base de datos`);
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }    console.log(`Perfil de usuario obtenido correctamente: ${user.username}`);
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Error al obtener el perfil del usuario:", error);
+    return res.status(500).json({ message: "Error al obtener el perfil del usuario" });
+  }
+};
+
 // Actualizar un usuario
 exports.updateUser = async (req, res) => {
   try {

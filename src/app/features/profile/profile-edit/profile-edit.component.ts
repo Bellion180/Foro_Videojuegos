@@ -287,7 +287,7 @@ export class ProfileEditComponent implements OnInit {
     this.loadUserProfile()
   }
   loadUserProfile(): void {
-    const user = this.authService.getCurrentUser()
+    const user = this.authService.getCurrentUserValue() // Changed to getCurrentUserValue()
     if (user) {
       this.user = user
       this.formData = {

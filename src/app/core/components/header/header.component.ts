@@ -1,9 +1,9 @@
-import { Component } from "@angular/core"
+import { Component, OnInit, OnDestroy } from "@angular/core" // Added OnInit, OnDestroy
 import { RouterLink, RouterLinkActive } from "@angular/router"
 import { NgClass, CommonModule } from "@angular/common"
 import { AuthService } from "../../services/auth.service"
-import { SmoothScrollDirective } from "../../directives/smooth-scroll.directive"
 import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component"
+import type { User } from "../../models/user.model"; // Added User import
 
 @Component({
   selector: "app-header",
@@ -31,23 +31,28 @@ import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component"
             <li><a routerLink="/forums" routerLinkActive="active">Forums</a></li>
             <li><a routerLink="/threads/latest" routerLinkActive="active">Latest Discussions</a></li>
             <li class="theme-toggle-container"><app-theme-toggle></app-theme-toggle></li>
-            @if (authService.isLoggedIn()) {
-              <li class="dropdown">
-                <a class="dropdown-toggle">
-                  <span class="user-avatar">
-                    <img src="/assets/images/default-avatar.png" alt="User avatar">
-                  </span>
-                  <span>My Account</span>
-                </a>
-                <ul class="dropdown-menu">
-                  <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
-                  <li><a routerLink="/profile/edit" routerLinkActive="active">Settings</a></li>
-                  <li><button (click)="logout()" class="logout-btn">Logout</button></li>
-                </ul>
-              </li>
+            @if (authService.isAuthStatusKnown()) {
+              @if (authService.isLoggedIn()) {
+                <li class="dropdown">
+                  <a class="dropdown-toggle">
+                    <span class="user-avatar">
+                      <img [src]="currentUser?.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
+                    </span>
+                    <span>{{ currentUser?.username || 'My Account' }}</span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+                    <li><a routerLink="/profile/edit" routerLinkActive="active">Settings</a></li>
+                    <li><button (click)="logout()" class="logout-btn">Logout</button></li>
+                  </ul>
+                </li>
+              } @else {
+                <li><a routerLink="/auth/login" routerLinkActive="active" class="login-btn">Login</a></li>
+                <li><a routerLink="/auth/register" routerLinkActive="active" class="register-btn">Register</a></li>
+              }
             } @else {
-              <li><a routerLink="/auth/login" routerLinkActive="active" class="login-btn">Login</a></li>
-              <li><a routerLink="/auth/register" routerLinkActive="active" class="register-btn">Register</a></li>
+              <!-- Optionally, show a loading indicator or nothing while auth status is unknown -->
+              <li><span class="loading-auth">Loading...</span></li>
             }
           </ul>
         </nav>
@@ -280,19 +285,27 @@ import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component"
   `,
   ],
 })
-export class HeaderComponent {
-  mobileMenuOpen = false
-  isScrolled = false
+export class HeaderComponent implements OnInit, OnDestroy { // Implemented OnInit, OnDestroy
+  isScrolled = false;
+  mobileMenuOpen = false;
+  currentUser: User | null | undefined;
 
-  constructor(public authService: AuthService) {
-    // Detectar scroll para cambiar el estilo del header
-    if (typeof window !== "undefined") {
-      window.addEventListener("scroll", this.handleScroll)
-    }
+  constructor(public authService: AuthService) {}
+
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+
+    window.addEventListener('scroll', this.onScroll, true);
   }
 
-  handleScroll = () => {
-    this.isScrolled = window.scrollY > 30
+  ngOnDestroy() {
+    window.removeEventListener('scroll', this.onScroll, true);
+  }
+
+  onScroll = () => {
+    this.isScrolled = window.scrollY > 50;
   }
 
   toggleMobileMenu(): void {
@@ -302,12 +315,5 @@ export class HeaderComponent {
   logout(): void {
     this.authService.logout()
     this.mobileMenuOpen = false
-  }
-
-  ngOnDestroy() {
-    // Limpiar el event listener cuando se destruye el componente
-    if (typeof window !== "undefined") {
-      window.removeEventListener("scroll", this.handleScroll)
-    }
   }
 }

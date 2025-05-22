@@ -6,8 +6,21 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Tag for environment detection
+    window.isDevEnvironment = %ENVIRONMENT_IS_DEV%;
+  </script>
 </head>
 <body>
   <app-root></app-root>
+  <script>
+    // Load session monitor in development mode only
+    if (window.isDevEnvironment) {
+      const script = document.createElement('script');
+      script.src = 'assets/js/session-monitor.js';
+      script.type = 'text/javascript';
+      document.body.appendChild(script);
+    }
+  </script>
 </body>
 </html>
