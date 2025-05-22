@@ -12,7 +12,8 @@ import { NotificationService } from "./core/services/notification.service"
 
 @Component({
   selector: "app-root",
-  standalone: true,  imports: [
+  standalone: true,
+  imports: [
     RouterOutlet,
     HeaderComponent,
     FooterComponent,
@@ -20,7 +21,8 @@ import { NotificationService } from "./core/services/notification.service"
     AnimatedBackgroundComponent,
     NotificationsComponent,
     CommonModule,
-  ],  template: `
+  ],
+  template: `
     <app-animated-background></app-animated-background>
     <app-notifications></app-notifications>
     <div class="app-container" id="top">

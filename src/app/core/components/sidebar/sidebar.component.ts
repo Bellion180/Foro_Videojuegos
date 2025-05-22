@@ -2,6 +2,7 @@ import { Component } from "@angular/core"
 import { RouterLink } from "@angular/router"
 import { CommonModule } from "@angular/common"
 import { ForumService } from "../../services/forum.service"
+import { ThreadService } from "../../services/thread.service"
 import { Forum } from "../../models/forum.model"
 
 @Component({
@@ -15,16 +16,29 @@ import { Forum } from "../../models/forum.model"
           <span class="icon">🏆</span>
           Popular Categories
         </h3>
-        <ul class="category-list">
-          @for (forum of popularForums; track forum.id) {
-            <li>
-              <a [routerLink]="['/forums', forum.id]">
-                <span class="category-icon">{{ forum.name.charAt(0) }}</span>
-                <span>{{ forum.name }}</span>
-              </a>
-            </li>
-          }
-        </ul>
+        @if (isLoading) {
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>Cargando...</span>
+          </div>
+        } @else if (error) {
+          <div class="error-message">{{ error }}</div>
+        } @else {
+          <ul class="category-list">
+            @if (popularForums.length === 0) {
+              <li class="empty-state">No hay categorías disponibles</li>
+            } @else {
+              @for (forum of popularForums; track forum.id) {
+                <li>
+                  <a [routerLink]="['/forums', forum.id]">
+                    <span class="category-icon">{{ forum.name.charAt(0) }}</span>
+                    <span>{{ forum.name }}</span>
+                  </a>
+                </li>
+              }
+            }
+          </ul>
+        }
       </div>
       
       <div class="sidebar-section">
@@ -32,52 +46,38 @@ import { Forum } from "../../models/forum.model"
           <span class="icon">🔥</span>
           Hot Topics
         </h3>
-        <ul class="topic-list">
-          @for (thread of hotThreads; track thread.id) {
-            <li>
-              <a [routerLink]="['/threads', thread.id]">
-                <div class="topic-title">{{ thread.title }}</div>
-                <div class="topic-meta">
-                  <span class="replies">
-                    <span class="replies-icon">💬</span>
-                    {{ thread.replyCount }} replies
-                  </span>
-                </div>
-              </a>
-            </li>
-          }
-        </ul>
+        @if (isLoading) {
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>Cargando...</span>
+          </div>
+        } @else if (error) {
+          <div class="error-message">{{ error }}</div>
+        } @else {
+          <ul class="topic-list">
+            @if (hotThreads.length === 0) {
+              <li class="empty-state">No hay temas disponibles</li>
+            } @else {
+              @for (thread of hotThreads; track thread.id) {
+                <li>
+                  <a [routerLink]="['/threads', thread.id]">
+                    <div class="topic-title">{{ thread.title }}</div>                    <div class="topic-meta">
+                      <span class="replies">
+                        <span class="replies-icon">💬</span>
+                        {{ thread.replyCount ? (thread.replyCount + 1) : 0 }} replies
+                      </span>
+                    </div>
+                  </a>
+                </li>
+              }
+            }
+          </ul>
+        }
       </div>
       
-      <div class="sidebar-section">
-        <h3>
-          <span class="icon">👥</span>
-          Online Users
-        </h3>
-        <div class="online-count">
-          <div class="pulse"></div>
-          <span>{{ onlineUsers }} users online</span>
-        </div>
-        
-        <div class="online-avatars">
-          @for (i of [1, 2, 3, 4, 5]; track i) {
-            <div class="avatar" title="Online User">
-              <img src="/assets/images/default-avatar.png" alt="User avatar">
-            </div>
-          }
-          @if (onlineUsers > 5) {
-            <div class="avatar-more">+{{ onlineUsers - 5 }}</div>
-          }
-        </div>
-      </div>
       
-      <div class="sidebar-section">
-        <div class="promo-card">
-          <h3>Join Premium</h3>
-          <p>Get exclusive access to premium features and content.</p>
-          <a routerLink="/premium" class="btn-premium">Upgrade Now</a>
-        </div>
-      </div>
+      
+      
     </aside>
   `,
   styles: [
@@ -266,10 +266,45 @@ import { Forum } from "../../models/forum.model"
       font-weight: 600;
       font-size: 0.9rem;
       transition: all 0.3s;
-    }
-    .btn-premium:hover {
+    }    .btn-premium:hover {
       transform: scale(1.05);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    .loading-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 0.5rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .error-message {
+      padding: 1rem;
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+    }
+    .empty-state {
+      padding: 1rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-style: italic;
+      background-color: var(--bg-tertiary);
+      border-radius: var(--border-radius);
     }
     @media (max-width: 768px) {
       .sidebar {
@@ -285,28 +320,54 @@ export class SidebarComponent {
   popularForums: Forum[] = []
   hotThreads: any[] = []
   onlineUsers = 0
+  isLoading = true
+  error: string | null = null
 
-  constructor(private forumService: ForumService) {
+  constructor(private forumService: ForumService, private threadService: ThreadService) {
     this.loadSidebarData()
   }
 
   loadSidebarData() {
-    // En una aplicación real, estos datos vendrían de servicios
-    this.popularForums = [
-      { id: 1, name: "Action Games" } as Forum,
-      { id: 2, name: "RPG Discussion" } as Forum,
-      { id: 3, name: "Strategy Games" } as Forum,
-      { id: 4, name: "Indie Games" } as Forum,
-      { id: 5, name: "Gaming News" } as Forum,
-    ]
+    // Cargar foros populares
+    this.forumService.getForums().subscribe({
+      next: (forums) => {
+        // Ordenar los foros por recuento de hilos o publicaciones (si están disponibles)
+        this.popularForums = forums
+          .sort((a, b) => {
+            // Si hay recuento de hilos, ordenar por eso
+            if (a.threadCount !== undefined && b.threadCount !== undefined) {
+              return b.threadCount - a.threadCount
+            }
+            // De lo contrario, usar el ID
+            return a.id - b.id
+          })
+          .slice(0, 5) // Obtener los primeros 5 (los más populares)
+      },
+      error: (err) => {
+        console.error('Error al cargar foros populares:', err)
+        this.error = 'No se pudieron cargar los foros populares'
+      }
+    })
 
-    this.hotThreads = [
-      { id: 101, title: "New Elder Scrolls 6 Rumors", replyCount: 42 },
-      { id: 102, title: "Best Builds for Elden Ring", replyCount: 38 },
-      { id: 103, title: "Upcoming Nintendo Switch Games", replyCount: 27 },
-      { id: 104, title: "PC vs Console Gaming in 2024", replyCount: 56 },
-    ]
+    // Cargar hilos más activos (hot)
+    this.threadService.getThreads({
+      sort: 'popular', // Asumiendo que el backend admite este tipo de ordenación
+      limit: 4         // Sólo queremos los 4 más populares
+    }).subscribe({
+      next: (response) => {
+        this.hotThreads = response.threads || []
+        this.isLoading = false
+      },
+      error: (err) => {
+        console.error('Error al cargar hilos populares:', err)
+        this.error = 'No se pudieron cargar los hilos populares'
+        this.isLoading = false
+      }
+    })
 
+    // En una aplicación real podrías obtener el número de usuarios en línea desde un servicio
+    // Por ejemplo: this.userService.getOnlineUsers().subscribe(count => this.onlineUsers = count)
+    // Por ahora, se utiliza un valor de ejemplo
     this.onlineUsers = 237
   }
 }

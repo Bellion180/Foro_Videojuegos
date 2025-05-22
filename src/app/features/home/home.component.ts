@@ -1,10 +1,13 @@
-import { Component, type OnInit } from "@angular/core"
+import { Component, type OnInit, OnDestroy } from "@angular/core"
 import { RouterLink } from "@angular/router"
 import { CommonModule } from "@angular/common"
 import { ForumService } from "../../core/services/forum.service"
 import { ThreadService } from "../../core/services/thread.service"
+import { AuthService } from "../../core/services/auth.service"
+import { StatsService, type SiteStats } from "../../core/services/stats.service"
 import { Forum } from "../../core/models/forum.model"
 import type { Thread } from "../../core/models/thread.model"
+import { Subscription } from "rxjs"
 
 @Component({
   selector: "app-home",
@@ -16,12 +19,13 @@ import type { Thread } from "../../core/models/thread.model"
         <div class="hero-content">
           <h1 class="hero-title">Welcome to <span class="text-gradient">GamersHub</span></h1>
           <p class="hero-subtitle">Join the conversation with fellow gamers from around the world.</p>
-          <div class="hero-buttons">
-            <a routerLink="/forums" class="btn btn-primary">
+          <div class="hero-buttons">            <a routerLink="/forums" class="btn btn-primary">
               <span>Browse Forums</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </a>
-            <a routerLink="/auth/register" class="btn btn-outline">Join Community</a>
+            @if (!isLoggedIn) {
+              <a routerLink="/auth/register" class="btn btn-outline">Join Community</a>
+            }
           </div>
         </div>
         <div class="hero-image">
@@ -118,19 +122,20 @@ import type { Thread } from "../../core/models/thread.model"
           <div class="stat-icon">🔥</div>
           <h3>{{ stats.onlineUsers.toLocaleString() }}</h3>
           <p>Users Online</p>
-        </div>
-      </section>
+        </div>      </section>
 
-      <section class="cta-section">
-        <div class="cta-content">
-          <h2>Ready to join the conversation?</h2>
-          <p>Create an account to start posting, join discussions, and connect with fellow gamers.</p>
-          <div class="cta-buttons">
-            <a routerLink="/auth/register" class="btn btn-primary">Create Account</a>
-            <a routerLink="/auth/login" class="btn btn-outline">Log In</a>
+      @if (!isLoggedIn) {
+        <section class="cta-section">
+          <div class="cta-content">
+            <h2>Ready to join the conversation?</h2>
+            <p>Create an account to start posting, join discussions, and connect with fellow gamers.</p>
+            <div class="cta-buttons">
+              <a routerLink="/auth/register" class="btn btn-primary">Create Account</a>
+              <a routerLink="/auth/login" class="btn btn-outline">Log In</a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      }
     </div>
   `,
   styles: [
@@ -480,58 +485,81 @@ import type { Thread } from "../../core/models/thread.model"
   `,
   ],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   popularForums: Forum[] = []
   recentThreads: Thread[] = []
+  isLoggedIn = false
+  private authSubscription: Subscription | null = null
   stats = {
     userCount: 0,
     threadCount: 0,
     postCount: 0,
     onlineUsers: 0,
   }
-
   constructor(
     private forumService: ForumService,
     private threadService: ThreadService,
+    private authService: AuthService,
+    private statsService: StatsService,
   ) {}
 
   ngOnInit(): void {
     this.loadForums()
     this.loadRecentThreads()
     this.loadStats()
+    this.isLoggedIn = this.authService.isLoggedIn()
+    
+    // Subscribe to authentication state changes
+    this.authSubscription = this.authService.currentUser$.subscribe(user => {
+      this.isLoggedIn = !!user;
+    });
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up subscription when component is destroyed
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
   }
 
-loadForums(): void {
-  this.forumService.getForums().subscribe({
-    next: (forums) => {
-      this.popularForums = Array.isArray(forums) ? forums.slice(0, 6) : [];
-    },
-    error: (err) => {
-      console.error('Error loading forums:', err);
-      this.popularForums = [];
-    }
-  });
-}
+  loadForums(): void {
+    this.forumService.getForums().subscribe({
+      next: (forums) => {
+        this.popularForums = Array.isArray(forums) ? forums.slice(0, 6) : [];
+      },
+      error: (err) => {
+        console.error('Error loading forums:', err);
+        this.popularForums = [];
+      }
+    });
+  }
 
   loadRecentThreads(): void {
-  this.threadService.getThreads({ sort: "recent", limit: 5 }).subscribe({
-    next: (threads) => {
-      this.recentThreads = Array.isArray(threads) ? threads : [];
-    },
-    error: (err) => {
-      console.error('Error loading threads:', err);
-      this.recentThreads = [];
-    }
-  });
-}
-
+    this.threadService.getThreads({ sort: "recent", limit: 5 }).subscribe({
+      next: (threads) => {
+        this.recentThreads = Array.isArray(threads) ? threads : [];
+      },
+      error: (err) => {
+        console.error('Error loading threads:', err);
+        this.recentThreads = [];
+      }
+    });
+  }
   loadStats(): void {
-    // En una aplicación real, esto vendría de una API
-    this.stats = {
-      userCount: 12548,
-      threadCount: 3782,
-      postCount: 27459,
-      onlineUsers: 237,
-    }
+    this.statsService.getSiteStats().subscribe({
+      next: (stats) => {
+        this.stats = stats;
+      },
+      error: (err) => {
+        console.error('Error loading site statistics:', err);
+        // Fallback to default values if API call fails
+        this.stats = {
+          userCount: 0,
+          threadCount: 0,
+          postCount: 0,
+          onlineUsers: 0,
+        };
+      }
+    });
   }
 }

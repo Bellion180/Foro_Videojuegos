@@ -7,8 +7,7 @@ export const roleGuard = (allowedRoles: string[]) => {
   const authService = inject(AuthService)
   const router = inject(Router)
   const notificationService = inject(NotificationService)
-
-  const user = authService.getCurrentUser()
+  const user = authService.getCurrentUserValue()
   
   // First check if the user is logged in
   if (!authService.isLoggedIn()) {
