@@ -32,11 +32,12 @@ export class ForumService {
       }),
     )
   }
-
-  getThreadsByForum(forumId: number): Observable<Thread[]> {
-    return this.http.get<Thread[]>(`${environment.apiUrl}/threads?forumId=${forumId}`).pipe(
+  getThreadsByForum(forumId: number, page: number = 1, filter: string = 'latest'): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/threads?forumId=${forumId}&page=${page}&sort=${filter}`).pipe(
+      tap(response => console.log('Threads recibidos:', response)),
       catchError((error) => {
-        return throwError(() => new Error(error.error.message || "Error al obtener los hilos del foro"))
+        console.error('Error al obtener los hilos del foro:', error);
+        return throwError(() => new Error(error.error?.message || "Error al obtener los hilos del foro"))
       }),
     )
   }

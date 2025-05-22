@@ -10,7 +10,7 @@ async function testConnection() {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 3306,
       user: process.env.DB_USERNAME || 'root',
-      password: process.env.DB_PASSWORD || '1234567',
+      password: process.env.DB_PASSWORD || '12345',
       database: process.env.DB_DATABASE || 'gaming_forum'
     });
 

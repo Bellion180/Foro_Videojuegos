@@ -1,4 +1,5 @@
 import type { User } from "./user.model"
+import type { Post } from "./post.model"
 
 export interface Thread {
   id: number
@@ -18,4 +19,5 @@ export interface Thread {
     createdAt: Date
   }
   tags?: string[]
+  posts?: Post[]
 }

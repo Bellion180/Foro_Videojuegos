@@ -311,26 +311,67 @@ export class ForumDetailComponent implements OnInit {
       this.forum = forum
     })
   }
-
   loadThreads(forumId: number): void {
-    this.forumService.getThreadsByForum(forumId).subscribe((threads) => {
-      this.threads = threads
-      this.totalPages = Math.ceil(threads.length / 10) // Asumiendo 10 hilos por página
-    })
+    this.forumService.getThreadsByForum(forumId, this.currentPage, this.currentFilter).subscribe((response) => {
+      console.log("Respuesta de getThreadsByForum:", response);
+      if (response && response.threads) {
+        this.threads = response.threads;
+        if (response.pagination) {
+          this.totalPages = response.pagination.totalPages || 1;
+          this.currentPage = response.pagination.page || 1;
+        }
+      } else {
+        console.error("La respuesta no tiene el formato esperado:", response);
+        this.threads = [];
+        this.totalPages = 1;
+      }
+    });
   }
-
   setFilter(filter: string): void {
-    this.currentFilter = filter
-    // En una aplicación real, recargarías los hilos con el nuevo filtro
+    this.currentFilter = filter;
+    this.currentPage = 1; // Reiniciar a la primera página cuando cambia el filtro
+    
+    if (this.forum) {
+      this.loadThreads(this.forum.id);
+    }
   }
-
   searchThreads(): void {
-    // En una aplicación real, buscarías hilos con la consulta
-    console.log("Buscando:", this.searchQuery)
+    if (this.searchQuery && this.searchQuery.trim()) {
+      // Aquí asumo que necesitamos crear un endpoint para buscar threads por texto
+      // Para pruebas, podemos filtrar los threads actuales en el frontend
+      console.log("Buscando:", this.searchQuery);
+      
+      if (this.forum) {
+        // Debería haber un endpoint como: /api/threads/search?forumId=X&query=Y
+        // Por ahora, usamos el endpoint normal y filtramos en el front
+        this.forumService.getThreadsByForum(this.forum.id, 1, this.currentFilter)
+          .subscribe((response) => {
+            if (response && response.threads) {
+              // Filtrado local (esto debería hacerse en el backend idealmente)
+              const searchLower = this.searchQuery.toLowerCase();
+              this.threads = response.threads.filter((thread: Thread) => 
+                thread.title.toLowerCase().includes(searchLower) || 
+                thread.content.toLowerCase().includes(searchLower)
+              );
+              
+              // No actualizamos totalPages ya que estamos haciendo una búsqueda local
+            }
+          });
+      }
+    } else {
+      // Si la búsqueda está vacía, volvemos a cargar todos los threads
+      if (this.forum) {
+        this.loadThreads(this.forum.id);
+      }
+    }
   }
-
   changePage(page: number): void {
-    this.currentPage = page
-    // En una aplicación real, cargarías hilos para la nueva página
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      
+      if (this.forum) {
+        this.loadThreads(this.forum.id);
+      }
+    }
   }
 }

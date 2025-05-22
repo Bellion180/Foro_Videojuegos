@@ -56,41 +56,44 @@ import { Post } from "../../../core/models/post.model"
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Replies -->
-          @for (post of posts; track post.id) {
-            <div class="post reply" [class.accepted-answer]="post.isAcceptedAnswer">
-              @if (post.isAcceptedAnswer) {
-                <div class="accepted-badge">Accepted Answer</div>
-              }
-              <div class="post-sidebar">
-                <div class="user-avatar">
-                  <img [src]="post.author.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
-                </div>
-                <div class="user-info">
-                  <div class="username">{{ post.author.username }}</div>
-                  <div class="user-role">{{ post.author.role }}</div>
-                  <div class="join-date">Joined {{ post.author.joinDate | date:'mediumDate' }}</div>
-                  <div class="post-count">{{ post.author.postCount || 0 }} posts</div>
-                </div>
-              </div>
-              <div class="post-content">
-                <div class="post-body" [innerHTML]="post.content"></div>
-                <div class="post-footer">
-                  <div class="post-date">
-                    {{ post.createdAt | date:'medium' }}
-                    @if (post.isEdited) {
-                      <span class="edited-indicator">(edited)</span>
-                    }
+          </div>          <!-- Replies -->
+          @if (posts && posts.length > 0) {
+            @for (post of posts; track post.id) {
+              <div class="post reply" [class.accepted-answer]="post.isAcceptedAnswer">
+                @if (post.isAcceptedAnswer) {
+                  <div class="accepted-badge">Accepted Answer</div>
+                }
+                <div class="post-sidebar">
+                  <div class="user-avatar">
+                    <img [src]="post.author.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
                   </div>
-                  <div class="post-actions">
-                    <button class="action-btn">Like</button>
-                    <button class="action-btn">Quote</button>
-                    <button class="action-btn">Report</button>
+                  <div class="user-info">
+                    <div class="username">{{ post.author.username }}</div>
+                    <div class="user-role">{{ post.author.role }}</div>
+                    <div class="join-date">Joined {{ post.author.joinDate | date:'mediumDate' }}</div>
+                    <div class="post-count">{{ post.author.postCount || 0 }} posts</div>
                   </div>
                 </div>
+                <div class="post-content">
+                  <div class="post-body" [innerHTML]="post.content"></div>
+                  <div class="post-footer">
+                    <div class="post-date">
+                      {{ post.createdAt | date:'medium' }}
+                      @if (post.isEdited) {
+                        <span class="edited-indicator">(edited)</span>
+                      }
+                    </div>
+                    <div class="post-actions">
+                      <button class="action-btn">Like</button>
+                      <button class="action-btn">Quote</button>
+                      <button class="action-btn">Report</button>
+                    </div>
+                  </div>
+                </div>
               </div>
+            }
+          } @else {            <div class="no-replies">
+              <p>No replies yet. Be the first to reply!</p>
             </div>
           }
         </div>
@@ -326,6 +329,13 @@ import { Post } from "../../../core/models/post.model"
       padding: 3rem 0;
       color: #666;
     }
+    .no-replies {
+      text-align: center;
+      padding: 2rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
   `,
   ],
 })
@@ -351,17 +361,29 @@ export class ThreadDetailComponent implements OnInit {
       }
     })
   }
-
   loadThread(id: number): void {
-    this.threadService.getThread(id).subscribe((thread) => {
-      this.thread = thread
-    })
+    console.log("Cargando thread ID:", id);
+    this.threadService.getThread(id).subscribe({
+      next: (thread) => {
+        console.log("Thread recibido:", thread);
+        this.thread = thread;
+      },
+      error: (err) => {
+        console.error("Error al cargar el thread:", err);
+      }
+    });
   }
-
   loadPosts(threadId: number): void {
-    this.threadService.getPostsByThread(threadId).subscribe((posts) => {
-      this.posts = posts
-    })
+    console.log("Cargando posts para el thread ID:", threadId);
+    this.threadService.getPostsByThread(threadId).subscribe({
+      next: (posts) => {
+        console.log("Posts recibidos:", posts);
+        this.posts = posts;
+      },
+      error: (err) => {
+        console.error("Error al cargar los posts:", err);
+      }
+    });
   }
 
   submitReply(): void {

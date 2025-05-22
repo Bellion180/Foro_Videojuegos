@@ -38,19 +38,22 @@ export class ThreadService {
       }),
     )
   }
-
   getThread(id: number): Observable<Thread> {
     return this.http.get<Thread>(`${this.apiUrl}/${id}`).pipe(
+      tap(thread => console.log("Thread obtenido del servidor:", thread)),
       catchError((error) => {
-        return throwError(() => new Error(error.error.message || "Error al obtener el hilo"))
+        console.error("Error al obtener el thread:", error);
+        return throwError(() => new Error(error.error?.message || "Error al obtener el hilo"))
       }),
     )
   }
-
   getPostsByThread(threadId: number): Observable<Post[]> {
+    console.log(`Solicitando posts para el thread ${threadId} con URL: ${environment.apiUrl}/posts/thread/${threadId}`);
     return this.http.get<Post[]>(`${environment.apiUrl}/posts/thread/${threadId}`).pipe(
+      tap(posts => console.log("Posts obtenidos del servidor:", posts)),
       catchError((error) => {
-        return throwError(() => new Error(error.error.message || "Error al obtener las publicaciones del hilo"))
+        console.error("Error al obtener los posts:", error);
+        return throwError(() => new Error(error.error?.message || "Error al obtener las publicaciones del hilo"))
       }),
     )
   }
