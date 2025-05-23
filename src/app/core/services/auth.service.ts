@@ -323,26 +323,34 @@ export class AuthService {
     }, logoutTime);
   }
   
-  register(userData: any): Observable<User> {
+  register(userData: any): Observable<any> {
     const storage = this.getStorageType();
     const headers = { 'Content-Type': 'application/json' };
     return this.http.post<any>(`${this.apiUrl}/register`, userData, { headers }).pipe(
       tap((response) => {
-        storage.setItem(this.tokenKey, response.token);
-        
-        // Si la respuesta incluye un refresh token, guardarlo también
-        if (response.refreshToken) {
-          storage.setItem(this.refreshTokenKey, response.refreshToken);
+        // Si el registro requiere verificación, no guardamos token ni iniciamos sesión
+        if (response.requiresVerification) {
+          console.log('Registration requires email verification');
+          return;
         }
         
-        storage.setItem(this.userKey, JSON.stringify(response.user));
-        this.currentUserSubject.next(response.user);
-        this.sessionRestoreAttempted = true;
+        // Si no requiere verificación, guardar token y sesión
+        if (response.token) {
+          storage.setItem(this.tokenKey, response.token);
+          
+          // Si la respuesta incluye un refresh token, guardarlo también
+          if (response.refreshToken) {
+            storage.setItem(this.refreshTokenKey, response.refreshToken);
+          }
+          
+          storage.setItem(this.userKey, JSON.stringify(response.user));
+          this.currentUserSubject.next(response.user);
+          this.sessionRestoreAttempted = true;
+        }
       }),
-      map((response) => response.user),
       catchError((error) => {
         return throwError(() => new Error(error.error.message || "Error en el registro"))
-      }),
+      })
     )
   }
   
@@ -481,5 +489,52 @@ export class AuthService {
         return throwError(() => new Error(error.error?.message || 'Error al cambiar la contraseña'));
       })
     );
+  }
+
+  /**
+   * Verifica un email con el token proporcionado
+   * @param email Email a verificar
+   * @param token Token de verificación
+   * @returns Observable con la respuesta del servidor
+   */
+  verifyEmail(email: string, token: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/verify-email`, {
+      params: { email, token }
+    }).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Reenvía un correo de verificación al email proporcionado
+   * @param email Email al que reenviar la verificación
+   * @returns Observable con la respuesta del servidor
+   */
+  resendVerification(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/resend-verification`, { email }).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Guarda la sesión del usuario después de una verificación exitosa
+   * @param user Datos del usuario
+   * @param token Token JWT
+   * @param refreshToken Token de refresco
+   */
+  saveUserSession(user: User, token: string, refreshToken?: string): void {
+    const storage = this.getStorageType();
+    storage.setItem(this.tokenKey, token);
+    
+    if (refreshToken) {
+      storage.setItem(this.refreshTokenKey, refreshToken);
+    }
+    
+    storage.setItem(this.userKey, JSON.stringify(user));
+    this.currentUserSubject.next(user);
   }
 }

@@ -7,6 +7,8 @@ const { verifyToken } = require("../middleware/auth")
 router.post("/register", authController.register)
 router.post("/login", authController.login)
 router.post("/refresh-token", authController.refreshToken)
+router.get("/verify-email", authController.verifyEmail)
+router.post("/resend-verification", authController.resendVerification)
 
 // Rutas protegidas
 router.get("/profile", verifyToken, authController.getProfile)

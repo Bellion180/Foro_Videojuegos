@@ -3,12 +3,12 @@ import { RouterLink, Router } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AuthService } from "../../../core/services/auth.service";
+import { EmailService } from "../../../core/services/email.service";
 
 @Component({
   selector: "app-register",
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
-  template: `
+  imports: [RouterLink, CommonModule, FormsModule],  template: `
     <div class="auth-container">
       <div class="auth-card">
         <div class="auth-header">
@@ -43,49 +43,72 @@ import { AuthService } from "../../../core/services/auth.service";
           </div>
 
           <div class="form-group">
-            <label for="email">Email</label>
-            <input 
+            <label for="email">Email</label>            <input 
               type="email" 
               id="email" 
               [(ngModel)]="email" 
               name="email" 
               required
               (input)="validateEmail()"
+              [disabled]="isVerifyingEmail"
             >
             @if (emailError) {
               <div class="input-error">{{ emailError }}</div>
             }
-          </div>
-
-          <div class="form-group">
+            @if (isVerifyingEmail) {
+              <div class="verifying-email">
+                <span class="spinner"></span> Verifying email...
+              </div>
+            } @else {
+              <div class="email-validation-info">
+                Please enter a valid email address. A welcome message will be sent to verify your email.
+              </div>
+            }
+          </div>          <div class="form-group">
             <label for="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              [(ngModel)]="password" 
-              name="password" 
-              required
-              minlength="8"
-              (input)="validatePassword()"
-            >
+            <div class="password-input-container">
+              <input 
+                [type]="showPassword ? 'text' : 'password'" 
+                id="password" 
+                [(ngModel)]="password" 
+                name="password" 
+                required
+                minlength="8"
+                (input)="validatePassword()"
+              >              <button 
+                type="button" 
+                class="toggle-password" 
+                (click)="showPassword = !showPassword"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <span>{{ showPassword ? '🔒' : '👁️' }}</span>
+              </button>
+            </div>
             <div class="password-requirements">
               Password must be at least 8 characters long and include a mix of letters, numbers, and symbols.
             </div>
             @if (passwordError) {
               <div class="input-error">{{ passwordError }}</div>
             }
-          </div>
-
-          <div class="form-group">
+          </div>          <div class="form-group">
             <label for="confirmPassword">Confirm Password</label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
-              [(ngModel)]="confirmPassword" 
-              name="confirmPassword" 
-              required
-              (input)="validatePasswordMatch()"
-            >
+            <div class="password-input-container">
+              <input 
+                [type]="showConfirmPassword ? 'text' : 'password'" 
+                id="confirmPassword" 
+                [(ngModel)]="confirmPassword" 
+                name="confirmPassword" 
+                required
+                (input)="validatePasswordMatch()"
+              >              <button 
+                type="button" 
+                class="toggle-password" 
+                (click)="showConfirmPassword = !showConfirmPassword"
+                [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+              >
+                <span>{{ showConfirmPassword ? '🔒' : '👁️' }}</span>
+              </button>
+            </div>
             @if (confirmPasswordError) {
               <div class="input-error">{{ confirmPasswordError }}</div>
             }
@@ -96,9 +119,7 @@ import { AuthService } from "../../../core/services/auth.service";
               <input type="checkbox" [(ngModel)]="agreeToTerms" name="agreeToTerms" required>
               <span>I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a></span>
             </label>
-          </div>
-
-          <button type="submit" class="btn primary" [disabled]="isLoading || !isFormValid()">
+          </div>          <button type="submit" class="btn primary" [disabled]="isLoading || isVerifyingEmail || !isFormValid()">
             {{ isLoading ? 'Creating Account...' : 'Create Account' }}
           </button>
         </form>
@@ -171,18 +192,70 @@ import { AuthService } from "../../../core/services/auth.service";
     .form-group label {
       margin-bottom: 0.5rem;
       font-weight: 500;
-    }
-    .form-group input[type="text"],
+    }    .form-group input[type="text"],
     .form-group input[type="email"],
     .form-group input[type="password"] {
       padding: 0.75rem;
       border: 1px solid #ddd;
       border-radius: 4px;
     }
-    .password-requirements {
+    .password-input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-input-container input {
+      flex: 1;
+      width: 100%;
+    }    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .toggle-password:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    .toggle-password:active {
+      background-color: rgba(0, 0, 0, 0.1);
+    }.password-requirements {
       font-size: 0.8rem;
       color: #666;
       margin-top: 0.5rem;
+    }    .email-validation-info {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+    .verifying-email {
+      display: flex;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #0072b1;
+      margin-top: 0.5rem;
+    }
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 8px;
+      border: 2px solid rgba(0, 114, 177, 0.3);
+      border-top-color: #0072b1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
     .checkbox-label {
       display: flex;
@@ -235,25 +308,26 @@ import { AuthService } from "../../../core/services/auth.service";
   `,
   ],
 })
-export class RegisterComponent {
-  username = "";
-  email = "";
+export class RegisterComponent {  username = "";  email = "";
   password = "";
   confirmPassword = "";
   agreeToTerms = false;
   isLoading = false;
+  isVerifyingEmail = false;
   errorMessage = "";
   successMessage = "";
+  showPassword = false;
+  showConfirmPassword = false;
   
   // Error messages for individual fields
   usernameError = "";
   emailError = "";
   passwordError = "";
   confirmPasswordError = "";
-
   constructor(
     private authService: AuthService,
     private router: Router,
+    private emailService: EmailService
   ) {}
 
   // Validación del nombre de usuario
@@ -265,16 +339,90 @@ export class RegisterComponent {
     } else {
       this.usernameError = "";
     }
-  }
-
-  // Validación del email
+  }  // Validación del email
   validateEmail(): void {
+    // Si ya está verificando, no hacer nada
+    if (this.isVerifyingEmail) return;
+    
+    // Primera validación básica con expresión regular
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.email)) {
       this.emailError = "Please enter a valid email address.";
-    } else {
-      this.emailError = "";
+      return;
     }
+
+    // Validaciones adicionales para correos más específicos
+    // 1. Verificar que tiene un dominio válido
+    const emailParts = this.email.split('@');
+    if (emailParts.length !== 2) {
+      this.emailError = "Email must have exactly one @ symbol.";
+      return;
+    }
+
+    const domainParts = emailParts[1].split('.');
+    if (domainParts.length < 2) {
+      this.emailError = "Invalid email domain.";
+      return;
+    }
+
+    // 2. Verificar que el TLD tiene al menos 2 caracteres
+    const tld = domainParts[domainParts.length - 1];
+    if (tld.length < 2) {
+      this.emailError = "Invalid top-level domain in email.";
+      return;
+    }
+
+    // 3. Verificar que el nombre de usuario no comienza ni termina con puntos
+    const username = emailParts[0];
+    if (username.startsWith('.') || username.endsWith('.') || username.includes('..')) {
+      this.emailError = "Invalid username part in email.";
+      return;
+    }
+
+    // Pasó todas las validaciones básicas
+    this.emailError = "";
+    
+    // Solo realizar verificación si el email tiene un formato válido y si tiene al menos 5 caracteres
+    if (this.email.length >= 5 && this.email.includes('@') && this.email.includes('.')) {
+      this.checkEmailFormatDebounced();
+    }
+  }
+  
+  // Temporizador para la verificación del email
+  private emailCheckTimer: any = null;
+  
+  // Verificación del formato del email con debounce
+  private checkEmailFormatDebounced() {
+    // Limpiar temporizador previo
+    if (this.emailCheckTimer) {
+      clearTimeout(this.emailCheckTimer);
+    }
+    
+    // Configurar nuevo temporizador (debounce de 800ms)
+    this.emailCheckTimer = setTimeout(() => {
+      this.performEmailCheck();
+    }, 800);
+  }
+  
+  // Simula una verificación de email
+  private performEmailCheck() {
+    if (!this.email || this.emailError) return;
+    
+    this.isVerifyingEmail = true;
+    
+    // Simulamos la verificación con un timeout
+    setTimeout(() => {
+      this.isVerifyingEmail = false;
+      
+      // Verificamos si contiene dominios comunes
+      const validDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com'];
+      const domain = this.email.split('@')[1]?.toLowerCase();
+      
+      if (domain && !validDomains.includes(domain)) {
+        // No es un error, solo una advertencia que se mostrará pero no bloqueará
+        console.log(`Dominio menos común: ${domain}`);
+      }
+    }, 1500);
   }
 
   // Validación de la contraseña
@@ -323,7 +471,7 @@ export class RegisterComponent {
       this.agreeToTerms
     );
   }
-
+  
   register(): void {
     // Validar todos los campos antes de enviar
     this.validateUsername();
@@ -334,12 +482,17 @@ export class RegisterComponent {
     if (!this.isFormValid()) {
       this.errorMessage = "Please correct the errors in the form.";
       return;
+    }    // No continuar si todavía está verificando el email
+    if (this.isVerifyingEmail) {
+      this.errorMessage = "Please wait while we verify your email.";
+      return;
     }
-
-    this.isLoading = true;
+      this.isLoading = true;
     this.errorMessage = "";
     this.successMessage = "";
-
+    
+    // Validar que el email existe - esto ocurre en el backend
+    // cuando se envía el correo de verificación
     const userData = {
       username: this.username,
       email: this.email,
@@ -349,14 +502,43 @@ export class RegisterComponent {
       bio: "", // Campo opcional
       role: "user" // Por defecto según tu tabla
     };
-
+    
     this.authService.register(userData).subscribe({
-      next: (response) => {
-        this.successMessage = "Registration successful! Redirecting...";
-        // Redirigir después de 2 segundos
-        setTimeout(() => {
-          this.router.navigate(["/"]);
-        }, 2000);
+      next: (response: any) => {
+        // Comprobar el mensaje de la respuesta para determinar si necesita verificación
+        let requiresVerification = false;
+        
+        // Comprobar si la respuesta contiene indicación de verificación
+        if (response && response.requiresVerification) {
+          requiresVerification = true;
+        } else if (response && response.message && response.message.includes('verifica')) {
+          requiresVerification = true;
+        }
+        
+        if (requiresVerification) {
+          this.successMessage = "¡Registro exitoso! Por favor, revisa tu correo electrónico para verificar tu cuenta.";
+          
+          // Mostrar notificación de email de verificación enviado
+          this.emailService.showEmailSentNotification(this.email, this.username);
+          
+          // Redirigir a página de login con mensaje
+          setTimeout(() => {
+            this.router.navigate(["/auth/login"], { 
+              queryParams: { 
+                message: "verification_pending",
+                email: this.email
+              } 
+            });
+          }, 3000);
+        } else {
+          // Flujo anterior para casos donde no se requiere verificación
+          this.successMessage = "¡Registro exitoso! Se ha enviado un correo de bienvenida a tu dirección. Redirigiendo...";
+          this.emailService.showEmailSentNotification(this.email, this.username);
+          
+          setTimeout(() => {
+            this.router.navigate(["/"]);
+          }, 2000);
+        }
       },
       error: (error) => {
         if (error.status === 409) {

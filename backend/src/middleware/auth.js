@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken")
+const { getRepository } = require("typeorm")
+const User = require("../entities/User")
 
 // Middleware para verificar el token JWT
-exports.verifyToken = (req, res, next) => {
+exports.verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization
 
   if (!authHeader) {
@@ -21,6 +23,23 @@ exports.verifyToken = (req, res, next) => {
     console.log(`Verificando token: ${token.substring(0, 15)}...`)
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     console.log("Token verificado correctamente. Usuario:", decoded.username, "ID:", decoded.id)
+    
+    // Verificar si el usuario está verificado
+    const userRepository = getRepository(User)
+    const user = await userRepository.findOne({ where: { id: decoded.id } })
+    
+    if (!user) {
+      return res.status(401).json({ message: "Usuario no encontrado" })
+    }
+    
+    if (!user.isVerified) {
+      return res.status(403).json({ 
+        message: "Debes verificar tu correo electrónico antes de acceder",
+        requiresVerification: true,
+        email: user.email
+      })
+    }
+    
     req.user = decoded
     next()
   } catch (error) {
