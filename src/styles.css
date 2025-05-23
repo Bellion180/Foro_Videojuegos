@@ -50,6 +50,9 @@ body {
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --transition: all 0.3s ease;
+
+  --text-dark: #a2a2a2;
+  --text-light: #666;
 }
 
 /* Tema oscuro */
@@ -57,9 +60,9 @@ body.dark-theme {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
-  --text-primary: #f8fafc;
+  --text-primary: #e2e8f0;
   --text-secondary: #e2e8f0;
-  --text-muted: #94a3b8;
+  --text-muted: #e2e8f0;
   --border-color: #334155;
   --card-bg: #1e293b;
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
@@ -69,6 +72,11 @@ body.dark-theme {
   /* Ajustar colores para mejor contraste en modo oscuro */
   --primary-light: #c084fc;
   --gray-light: #475569;
+}
+
+[data-theme="dark"] {
+  --text-dark: #f3f3f3;
+  --text-light: #b0b0b0;
 }
 
 body {

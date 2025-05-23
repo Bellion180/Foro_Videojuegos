@@ -107,7 +107,7 @@ import { NotificationService } from "../../../core/services/notification.service
       padding: 2rem 1rem;
     }
     .auth-card {
-      background-color: #f8f9fa;
+      background-color:rgb(184, 139, 224);
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       width: 100%;
