@@ -73,7 +73,7 @@ import { RouterLink } from "@angular/router"
   styles: [
     `
     .footer {
-      background-color: var(--bg-secondary);
+      background-color: var(--background-secondary);
       color: var(--text-primary);
       padding: 3rem 0 1rem;
       margin-top: 3rem;
@@ -107,9 +107,10 @@ import { RouterLink } from "@angular/router"
     .logo-text {
       font-size: 1.5rem;
       font-weight: 800;
+      color: var(--text-primary);
     }
     .logo-highlight {
-      color: var(--primary-light);
+      color: var(--primary);
     }
     .footer-section p {
       color: var(--text-secondary);
@@ -119,20 +120,26 @@ import { RouterLink } from "@angular/router"
     .social-links {
       display: flex;
       gap: 1rem;
+      align-items: center;
     }
     .social-link {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 36px;
-      height: 36px;
-      background-color: var(--bg-tertiary);
+      width: 40px;
+      height: 40px;
+      background-color: var(--background-tertiary);
       border-radius: 50%;
       color: var(--text-primary);
       transition: all 0.3s;
     }
+    .social-link svg {
+      width: 20px;
+      height: 20px;
+    }
     .social-link:hover {
       background-color: var(--primary);
+      color: white;
       transform: translateY(-3px);
     }
     .footer-section h3 {
@@ -140,6 +147,7 @@ import { RouterLink } from "@angular/router"
       margin-bottom: 1.25rem;
       position: relative;
       padding-bottom: 0.75rem;
+      color: var(--text-primary);
     }
     .footer-section h3::after {
       content: '';
@@ -174,17 +182,18 @@ import { RouterLink } from "@angular/router"
     .newsletter-form input {
       flex: 1;
       padding: 0.75rem;
-      border: none;
+      border: 1px solid var(--border-color);
       border-radius: var(--border-radius) 0 0 var(--border-radius);
-      background-color: var(--bg-tertiary);
+      background-color: var(--background-primary);
       color: var(--text-primary);
     }
     .newsletter-form input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--text-secondary);
     }
     .newsletter-form input:focus {
       outline: none;
-      background-color: rgba(255, 255, 255, 0.15);
+      border-color: var(--primary);
+      background-color: var(--background-primary);
     }
     .btn-subscribe {
       padding: 0 1.25rem;
@@ -216,7 +225,7 @@ import { RouterLink } from "@angular/router"
       gap: 1rem;
     }
     .footer-bottom p {
-      color: var(--text-muted);
+      color: var(--text-secondary);
       font-size: 0.9rem;
     }
     .footer-links {
@@ -224,7 +233,7 @@ import { RouterLink } from "@angular/router"
       gap: 1.5rem;
     }
     .footer-links a {
-      color: var(--text-muted);
+      color: var(--text-secondary);
       font-size: 0.9rem;
       text-decoration: none;
       transition: color 0.3s;

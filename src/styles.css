@@ -15,9 +15,9 @@ body {
 }
 
 :root {
-  /* Tema claro (default) */
+  /* Tema claro por defecto */
   --primary: #7e22ce;
-  --primary-light: #a855f7;
+  --primary-light: #9333ea;
   --primary-dark: #6b21a8;
   --secondary: #f97316;
   --secondary-light: #fb923c;
@@ -26,21 +26,21 @@ body {
   --dark-light: #334155;
   --light: #f8fafc;
   --gray: #94a3b8;
-  --gray-light: #e2e8f0;
+  --gray-light: #64748b;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
 
   /* Colores de fondo y texto */
-  --bg-primary: #f0f2f5;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f8f9fa;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
   --text-primary: #1e293b;
-  --text-secondary: #334155;
-  --text-muted: #94a3b8;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
   --border-color: #e2e8f0;
   --card-bg: #ffffff;
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow: var(--shadow);
   --header-bg: rgba(255, 255, 255, 0.8);
   --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
@@ -51,6 +51,15 @@ body {
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --transition: all 0.3s ease;
 
+  /* Input styles */
+  --input-bg: #ffffff;
+  --input-text: #1e293b;
+  --input-border: #e2e8f0;
+
+  /* Brand colors */
+  --purple-border: #9c27b0;
+  --purple-glow: 0 0 10px rgba(156, 39, 176, 0.5);
+
   --text-dark: #a2a2a2;
   --text-light: #666;
 }
@@ -60,18 +69,23 @@ body.dark-theme {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
-  --text-primary: #e2e8f0;
+  --text-primary: #f8fafc;
   --text-secondary: #e2e8f0;
-  --text-muted: #e2e8f0;
+  --text-muted: #cbd5e1;
   --border-color: #334155;
   --card-bg: #1e293b;
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --header-bg: rgba(15, 23, 42, 0.8);
   --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 
+  /* Input styles */
+  --input-bg: #1e293b;
+  --input-text: #f8fafc;
+  --input-border: #475569;
+
   /* Ajustar colores para mejor contraste en modo oscuro */
-  --primary-light: #c084fc;
-  --gray-light: #475569;
+  --primary-light: #a855f7;
+  --gray-light: #94a3b8;
 }
 
 [data-theme="dark"] {

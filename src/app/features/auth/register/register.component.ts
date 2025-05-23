@@ -1,9 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { RouterLink, Router } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AuthService } from "../../../core/services/auth.service";
 import { EmailService } from "../../../core/services/email.service";
+import { ThemeService } from "../../../core/services/theme.service";
 
 @Component({
   selector: "app-register",
@@ -138,14 +139,17 @@ import { EmailService } from "../../../core/services/email.service";
       align-items: center;
       min-height: calc(100vh - 200px);
       padding: 2rem 1rem;
-    }
-    .auth-card {
-      background-color: #f8f9fa;
+    }    .auth-card {
+      background-color: var(--bg-secondary, #f8f9fa);
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1), var(--purple-glow);
+      border: 3px solid var(--purple-border);
       width: 100%;
       max-width: 400px;
       padding: 2rem;
+      color: var(--text-primary);
+    }
+      color: var(--text-primary);
     }
     .auth-header {
       text-align: center;
@@ -154,29 +158,29 @@ import { EmailService } from "../../../core/services/email.service";
     .auth-header h1 {
       font-size: 2rem;
       margin-bottom: 0.5rem;
-      color: #1a1a2e;
+      color: var(--text-primary);
     }
     .auth-header p {
-      color: #666;
-    }
-    .error-message {
-      background-color: #fee2e2;
-      color: #b91c1c;
+      color: var(--text-secondary);
+    }    .error-message {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: var(--danger, #ef4444);
       padding: 0.75rem;
       border-radius: 4px;
       margin-bottom: 1.5rem;
       text-align: center;
+      border: 1px solid var(--danger, #ef4444);
     }
     .success-message {
-      background-color: #dcfce7;
-      color: #166534;
+      background-color: rgba(16, 185, 129, 0.2);
+      color: var(--success, #10b981);
       padding: 0.75rem;
       border-radius: 4px;
       margin-bottom: 1.5rem;
       text-align: center;
-    }
-    .input-error {
-      color: #b91c1c;
+      border: 1px solid var(--success, #10b981);
+    }.input-error {
+      color: #ef4444;
       font-size: 0.8rem;
       margin-top: 0.25rem;
     }
@@ -184,20 +188,22 @@ import { EmailService } from "../../../core/services/email.service";
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-    }
-    .form-group {
+    }    .form-group {
       display: flex;
       flex-direction: column;
     }
     .form-group label {
       margin-bottom: 0.5rem;
       font-weight: 500;
+      color: var(--text-primary);
     }    .form-group input[type="text"],
     .form-group input[type="email"],
     .form-group input[type="password"] {
       padding: 0.75rem;
-      border: 1px solid #ddd;
+      border: 1px solid var(--input-border, #ddd);
       border-radius: 4px;
+      background-color: var(--input-bg, #fff);
+      color: var(--input-text, #333);
     }
     .password-input-container {
       position: relative;
@@ -230,18 +236,23 @@ import { EmailService } from "../../../core/services/email.service";
       background-color: rgba(0, 0, 0, 0.1);
     }.password-requirements {
       font-size: 0.8rem;
-      color: #666;
+      color: var(--text-secondary);
       margin-top: 0.5rem;
+      padding: 0.5rem;
+      background-color: rgba(148, 163, 184, 0.1);
+      border-radius: 4px;
     }    .email-validation-info {
       font-size: 0.8rem;
-      color: #666;
+      color: var(--text-secondary);
       margin-top: 0.5rem;
-    }
-    .verifying-email {
+      padding: 0.5rem;
+      background-color: rgba(148, 163, 184, 0.1);
+      border-radius: 4px;
+    }.verifying-email {
       display: flex;
       align-items: center;
       font-size: 0.8rem;
-      color: #0072b1;
+      color: var(--primary, #0072b1);
       margin-top: 0.5rem;
     }
     .spinner {
@@ -250,24 +261,24 @@ import { EmailService } from "../../../core/services/email.service";
       height: 12px;
       margin-right: 8px;
       border: 2px solid rgba(0, 114, 177, 0.3);
-      border-top-color: #0072b1;
+      border-top-color: var(--primary, #0072b1);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
-    }
-    .checkbox-label {
+    }    .checkbox-label {
       display: flex;
       align-items: flex-start;
       gap: 0.5rem;
       cursor: pointer;
+      color: var(--text-primary);
     }
     .checkbox-label input {
       margin-top: 0.25rem;
     }
     .checkbox-label a {
-      color: #0072b1;
+      color: var(--primary, #0072b1);
       text-decoration: none;
     }
     .checkbox-label a:hover {
@@ -292,14 +303,14 @@ import { EmailService } from "../../../core/services/email.service";
     .primary:disabled {
       background-color: #ffd699;
       cursor: not-allowed;
-    }
-    .auth-footer {
+    }    .auth-footer {
       text-align: center;
       margin-top: 2rem;
       font-size: 0.9rem;
+      color: var(--text-secondary);
     }
     .auth-footer a {
-      color: #0072b1;
+      color: var(--primary, #0072b1);
       text-decoration: none;
     }
     .auth-footer a:hover {
@@ -308,7 +319,9 @@ import { EmailService } from "../../../core/services/email.service";
   `,
   ],
 })
-export class RegisterComponent {  username = "";  email = "";
+export class RegisterComponent implements OnInit {  
+  username = "";  
+  email = "";
   password = "";
   confirmPassword = "";
   agreeToTerms = false;
@@ -318,17 +331,25 @@ export class RegisterComponent {  username = "";  email = "";
   successMessage = "";
   showPassword = false;
   showConfirmPassword = false;
+  isDarkTheme = false;
   
   // Error messages for individual fields
   usernameError = "";
   emailError = "";
   passwordError = "";
-  confirmPasswordError = "";
-  constructor(
+  confirmPasswordError = "";  constructor(
     private authService: AuthService,
     private router: Router,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private themeService: ThemeService
   ) {}
+
+  ngOnInit(): void {
+    // Subscribe to theme changes
+    this.themeService.theme$.subscribe(theme => {
+      this.isDarkTheme = theme === 'dark';
+    });
+  }
 
   // Validación del nombre de usuario
   validateUsername(): void {

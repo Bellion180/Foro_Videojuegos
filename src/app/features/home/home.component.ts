@@ -159,11 +159,11 @@ import { Subscription } from "rxjs"
       font-weight: 800;
       margin-bottom: 1rem;
       line-height: 1.2;
-      color: var(--text-dark, #222); /* Cambiado */
+      color: var(--text-primary);
     }
     .hero-subtitle {
       font-size: 1.2rem;
-      color: var(--text-light, #666); /* Cambiado */
+      color: var(--text-secondary);
       margin-bottom: 2rem;
       max-width: 600px;
     }
@@ -256,11 +256,11 @@ import { Subscription } from "rxjs"
     .forum-card h3 {
       margin-top: 0;
       margin-bottom: 0.5rem;
-      color: var(--text-dark, #222); /* Cambiado */
+      color: var(--text-primary);
       font-size: 1.2rem;
     }
     .forum-card p {
-      color: var(--text-light, #666); /* Cambiado */
+      color: var(--text-secondary);
       margin-bottom: 1rem;
       flex: 1;
     }
@@ -325,11 +325,11 @@ import { Subscription } from "rxjs"
     }
     .author-name {
       font-weight: 600;
-      color: var(--text-dark, #222); /* Cambiado */
+      color: var(--text-primary);
     }
     .thread-date {
       font-size: 0.8rem;
-      color: var(--text-light, #888); /* Cambiado */
+      color: var(--text-secondary);
     }
     .thread-main {
       flex: 1;
@@ -339,7 +339,7 @@ import { Subscription } from "rxjs"
       font-size: 1.2rem;
     }
     .thread-main h3 a {
-      color: var(--text-dark, #222); /* Cambiado */
+      color: var(--text-primary);
       text-decoration: none;
       transition: color 0.3s;
     }
@@ -381,20 +381,23 @@ import { Subscription } from "rxjs"
       margin-bottom: 3rem;
     }
     .stat-card {
-      background: white;
+      background: var(--background-secondary);
       padding: 2rem 1.5rem;
       border-radius: var(--border-radius);
       text-align: center;
       box-shadow: var(--shadow);
       transition: all 0.3s;
+      border: 2px solid var(--border-color);
     }
     .stat-card:hover {
       transform: translateY(-5px);
       box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
     }
     .stat-card .stat-icon {
       font-size: 2.5rem;
       margin-bottom: 1rem;
+      color: var(--text-primary);
     }
     .stat-card h3 {
       font-size: 2.5rem;
@@ -408,7 +411,7 @@ import { Subscription } from "rxjs"
     .stat-card p {
       margin: 0;
       font-size: 1.1rem;
-      color: var(--text-light, #666); /* Cambiado */
+      color: var(--text-primary);
       font-weight: 500;
     }
     .cta-section {

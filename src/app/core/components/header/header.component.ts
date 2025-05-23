@@ -11,6 +11,14 @@ import type { User } from "../../models/user.model"; // Added User import
   imports: [RouterLink, RouterLinkActive, CommonModule, ThemeToggleComponent],
   template: `
     <header class="header" [class.scrolled]="isScrolled">
+      <div class="floating-icons">
+        <span class="game-icon" style="left: 10%; animation-delay: 0s;">🎮</span>
+        <span class="game-icon" style="left: 25%; animation-delay: 2s;">🎲</span>
+        <span class="game-icon" style="left: 40%; animation-delay: 4s;">👾</span>
+        <span class="game-icon" style="left: 55%; animation-delay: 6s;">🏆</span>
+        <span class="game-icon" style="left: 70%; animation-delay: 8s;">⚔️</span>
+        <span class="game-icon" style="left: 85%; animation-delay: 10s;">🎯</span>
+      </div>
       <div class="header-container">
         <div class="logo">
           <a routerLink="/">
@@ -62,7 +70,7 @@ import type { User } from "../../models/user.model"; // Added User import
   styles: [
     `
     .header {
-      background-color: var(--header-bg);
+      background-color: rgba(var(--header-bg-rgb), 0.85);
       backdrop-filter: blur(10px);
       box-shadow: var(--header-shadow);
       position: fixed;
@@ -72,17 +80,87 @@ import type { User } from "../../models/user.model"; // Added User import
       z-index: 1000;
       padding: 0.75rem 0;
       transition: all 0.3s ease;
-      height: 70px; /* Altura fija para el header */
+      height: 70px;
       display: flex;
       align-items: center;
+      position: relative;
+      overflow: hidden;
     }
-    
+
     .header.scrolled {
       background-color: var(--header-bg);
       box-shadow: var(--header-shadow);
       height: 60px; /* Altura ligeramente menor al hacer scroll */
     }
-    
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(var(--primary-rgb), 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(var(--secondary-rgb), 0.1) 0%, transparent 50%);
+      z-index: -1;
+      animation: pulseBackground 8s ease-in-out infinite;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        repeating-linear-gradient(45deg, 
+          rgba(var(--primary-rgb), 0.05) 0, 
+          rgba(var(--primary-rgb), 0.05) 1px, 
+          transparent 1px, 
+          transparent 10px);
+      opacity: 0.5;
+      z-index: -1;
+      animation: moveGrid 20s linear infinite;
+    }
+
+    @keyframes pulseBackground {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+    }
+
+    @keyframes moveGrid {
+      0% { transform: translateX(-50%) translateY(-50%) rotate(45deg); }
+      100% { transform: translateX(0%) translateY(0%) rotate(45deg); }
+    }
+
+    .floating-icons {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .game-icon {
+      position: absolute;
+      font-size: 1.2rem;
+      opacity: 0.2;
+      animation: floatIcon 10s linear infinite;
+    }
+
+    @keyframes floatIcon {
+      0% {
+        transform: translateY(100%) rotate(0deg);
+        opacity: 0;
+      }
+      10% { opacity: 0.2; }
+      90% { opacity: 0.2; }
+      100% {
+        transform: translateY(-100%) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
     .header-container {
       display: flex;
       justify-content: space-between;
@@ -96,7 +174,7 @@ import type { User } from "../../models/user.model"; // Added User import
       align-items: center;
       gap: 0.5rem;
       font-weight: bold;
-      color: var(--dark);
+      color: var(--text-primary);
       text-decoration: none;
     }
     .logo-icon {
@@ -118,7 +196,7 @@ import type { User } from "../../models/user.model"; // Added User import
       align-items: center;
     }
     .nav-list a {
-      color: var(--dark);
+      color: var(--text-primary);
       text-decoration: none;
       font-weight: 500;
       padding: 0.5rem 0.75rem;
@@ -159,7 +237,7 @@ import type { User } from "../../models/user.model"; // Added User import
     .bar {
       height: 3px;
       width: 100%;
-      background-color: var(--dark);
+      background-color: var(--text-primary);
       border-radius: 10px;
       transition: all 0.3s;
     }
@@ -188,7 +266,7 @@ import type { User } from "../../models/user.model"; // Added User import
       position: absolute;
       top: 100%;
       right: 0;
-      background-color: white;
+      background-color: var(--background-primary);
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
       padding: 0.5rem;
@@ -209,7 +287,7 @@ import type { User } from "../../models/user.model"; // Added User import
     .dropdown-menu a, .dropdown-menu button {
       display: block;
       padding: 0.75rem 1rem;
-      color: var(--dark);
+      color: var(--text-primary);
       text-decoration: none;
       border-radius: var(--border-radius);
       transition: all 0.3s;
@@ -244,7 +322,7 @@ import type { User } from "../../models/user.model"; // Added User import
         width: 80%;
         max-width: 300px;
         height: 100vh;
-        background-color: white;
+        background-color: var(--background-primary);
         box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease-in-out;
         padding: 5rem 1.5rem 2rem;
