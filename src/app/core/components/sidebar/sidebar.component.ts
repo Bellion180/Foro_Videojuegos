@@ -11,10 +11,9 @@ import { Forum } from "../../models/forum.model"
   imports: [RouterLink, CommonModule],
   template: `
     <aside class="sidebar">
-      <div class="sidebar-section">
-        <h3>
+      <div class="sidebar-section">        <h3>
           <span class="icon">🏆</span>
-          Popular Categories
+          Categorías Populares
         </h3>
         @if (isLoading) {
           <div class="loading-indicator">
@@ -41,10 +40,9 @@ import { Forum } from "../../models/forum.model"
         }
       </div>
       
-      <div class="sidebar-section">
-        <h3>
+      <div class="sidebar-section">        <h3>
           <span class="icon">🔥</span>
-          Hot Topics
+          Temas Destacados
         </h3>
         @if (isLoading) {
           <div class="loading-indicator">
@@ -61,10 +59,9 @@ import { Forum } from "../../models/forum.model"
               @for (thread of hotThreads; track thread.id) {
                 <li>
                   <a [routerLink]="['/threads', thread.id]">
-                    <div class="topic-title">{{ thread.title }}</div>                    <div class="topic-meta">
-                      <span class="replies">
+                    <div class="topic-title">{{ thread.title }}</div>                    <div class="topic-meta">                      <span class="replies">
                         <span class="replies-icon">💬</span>
-                        {{ thread.replyCount ? (thread.replyCount + 1) : 0 }} replies
+                        {{ thread.replyCount ? (thread.replyCount + 1) : 0 }} respuestas
                       </span>
                     </div>
                   </a>

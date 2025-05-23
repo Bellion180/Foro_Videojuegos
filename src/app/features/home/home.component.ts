@@ -16,15 +16,14 @@ import { Subscription } from "rxjs"
   template: `
     <div class="home-container">
       <section class="hero">
-        <div class="hero-content">
-          <h1 class="hero-title">Welcome to <span class="text-gradient">GamersHub</span></h1>
-          <p class="hero-subtitle">Join the conversation with fellow gamers from around the world.</p>
+        <div class="hero-content">          <h1 class="hero-title">Bienvenido a <span class="text-gradient">GamersHub</span></h1>
+          <p class="hero-subtitle">Únete a la conversación con jugadores de todo el mundo.</p>
           <div class="hero-buttons">            <a routerLink="/forums" class="btn btn-primary">
-              <span>Browse Forums</span>
+              <span>Explorar Foros</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </a>
             @if (!isLoggedIn) {
-              <a routerLink="/auth/register" class="btn btn-outline">Join Community</a>
+              <a routerLink="/auth/register" class="btn btn-outline">Unirse a la Comunidad</a>
             }
           </div>
         </div>
@@ -34,9 +33,8 @@ import { Subscription } from "rxjs"
       </section>
 
       <section class="featured-section">
-        <div class="section-header">
-          <h2>Popular Forums</h2>
-          <a routerLink="/forums" class="view-all">View All</a>
+        <div class="section-header">          <h2>Foros Populares</h2>
+          <a routerLink="/forums" class="view-all">Ver Todos</a>
         </div>
         <div class="forums-grid">
           @for (forum of popularForums; track forum.id) {
@@ -48,14 +46,14 @@ import { Subscription } from "rxjs"
                 <div class="forum-stats">
                   <div class="stat">
                     <span class="stat-icon">📝</span>
-                    <span>{{ forum.threadCount }} threads</span>
+                    <span>{{ forum.threadCount }} temas</span>
                   </div>
                   <div class="stat">
                     <span class="stat-icon">💬</span>
-                    <span>{{ forum.postCount }} posts</span>
+                    <span>{{ forum.postCount }} mensajes</span>
                   </div>
                 </div>
-                <a [routerLink]="['/forums', forum.id]" class="forum-link">View Forum</a>
+                <a [routerLink]="['/forums', forum.id]" class="forum-link">Ver Foro</a>
               </div>
             </div>
           }
@@ -63,9 +61,8 @@ import { Subscription } from "rxjs"
       </section>
 
       <section class="recent-discussions">
-        <div class="section-header">
-          <h2>Recent Discussions</h2>
-          <a routerLink="/threads/latest" class="view-all">View All</a>
+        <div class="section-header">          <h2>Discusiones Recientes</h2>
+          <a routerLink="/threads/latest" class="view-all">Ver Todas</a>
         </div>
         <div class="threads-list">
           @for (thread of recentThreads; track thread.id) {
@@ -83,12 +80,11 @@ import { Subscription } from "rxjs"
                 <h3><a [routerLink]="['/threads', thread.id]">{{ thread.title }}</a></h3>
                 <div class="thread-meta">
                   <div class="meta-item">
-                    <span class="meta-icon">👁️</span>
-                    <span>{{ thread.viewCount }} views</span>
+                    <span class="meta-icon">👁️</span>                    <span>{{ thread.viewCount }} vistas</span>
                   </div>
                   <div class="meta-item">
                     <span class="meta-icon">💬</span>
-                    <span>{{ thread.replyCount }} replies</span>
+                    <span>{{ thread.replyCount }} respuestas</span>
                   </div>
                 </div>
               </div>
@@ -102,36 +98,34 @@ import { Subscription } from "rxjs"
         </div>
       </section>
 
-      <section class="community-stats">
-        <div class="stat-card">
+      <section class="community-stats">        <div class="stat-card">
           <div class="stat-icon">👥</div>
           <h3>{{ stats.userCount.toLocaleString() }}</h3>
-          <p>Community Members</p>
+          <p>Miembros en la Comunidad</p>
         </div>
         <div class="stat-card">
           <div class="stat-icon">📝</div>
           <h3>{{ stats.threadCount.toLocaleString() }}</h3>
-          <p>Discussion Threads</p>
+          <p>Temas de Discusión</p>
         </div>
         <div class="stat-card">
           <div class="stat-icon">💬</div>
           <h3>{{ stats.postCount.toLocaleString() }}</h3>
-          <p>Total Posts</p>
+          <p>Mensajes Totales</p>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🔥</div>
           <h3>{{ stats.onlineUsers.toLocaleString() }}</h3>
-          <p>Users Online</p>
+          <p>Usuarios en Línea</p>
         </div>      </section>
 
       @if (!isLoggedIn) {
         <section class="cta-section">
-          <div class="cta-content">
-            <h2>Ready to join the conversation?</h2>
-            <p>Create an account to start posting, join discussions, and connect with fellow gamers.</p>
+          <div class="cta-content">            <h2>¿Listo para unirte a la conversación?</h2>
+            <p>Crea una cuenta para empezar a publicar, unirte a las discusiones y conectar con otros jugadores.</p>
             <div class="cta-buttons">
-              <a routerLink="/auth/register" class="btn btn-primary">Create Account</a>
-              <a routerLink="/auth/login" class="btn btn-outline">Log In</a>
+              <a routerLink="/auth/register" class="btn btn-primary">Crear Cuenta</a>
+              <a routerLink="/auth/login" class="btn btn-outline">Iniciar Sesión</a>
             </div>
           </div>
         </section>

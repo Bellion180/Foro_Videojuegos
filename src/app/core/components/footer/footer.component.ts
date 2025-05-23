@@ -12,8 +12,7 @@ import { RouterLink } from "@angular/router"
           <div class="logo">
             <span class="logo-icon">🎮</span>
             <span class="logo-text">Gamers<span class="logo-highlight">Hub</span></span>
-          </div>
-          <p>The ultimate gaming community for discussing your favorite games, sharing tips, and connecting with fellow gamers.</p>
+          </div>          <p>La mejor comunidad de videojuegos para discutir tus juegos favoritos, compartir consejos y conectar con otros jugadores.</p>
           <div class="social-links">
             <a href="#" aria-label="Twitter" class="social-link">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
@@ -30,42 +29,38 @@ import { RouterLink } from "@angular/router"
           </div>
         </div>
         
-        <div class="footer-section links">
-          <h3>Quick Links</h3>
+        <div class="footer-section links">          <h3>Enlaces Rápidos</h3>
           <ul>
-            <li><a routerLink="/forums">Forums</a></li>
-            <li><a routerLink="/threads/latest">Latest Discussions</a></li>
-            <li><a routerLink="/about">About Us</a></li>
-            <li><a routerLink="/contact">Contact</a></li>
+            <li><a routerLink="/forums">Foros</a></li>
+            <li><a routerLink="/threads/latest">Últimas Discusiones</a></li>
+            <li><a routerLink="/about">Sobre Nosotros</a></li>
+            <li><a routerLink="/contact">Contacto</a></li>
           </ul>
         </div>
         
-        <div class="footer-section links">
-          <h3>Categories</h3>
+        <div class="footer-section links">          <h3>Categorías</h3>
           <ul>
-            <li><a routerLink="/forums/1">Action Games</a></li>
-            <li><a routerLink="/forums/2">RPG Discussion</a></li>
-            <li><a routerLink="/forums/3">Strategy Games</a></li>
-            <li><a routerLink="/forums/4">Indie Games</a></li>
+            <li><a routerLink="/forums/1">Juegos de Acción</a></li>
+            <li><a routerLink="/forums/2">Discusión de RPG</a></li>
+            <li><a routerLink="/forums/3">Juegos de Estrategia</a></li>
+            <li><a routerLink="/forums/4">Juegos Indie</a></li>
           </ul>
         </div>
         
-        <div class="footer-section newsletter">
-          <h3>Stay Updated</h3>
-          <p>Subscribe to our newsletter for the latest gaming news and community updates.</p>
+        <div class="footer-section newsletter">          <h3>Mantente Actualizado</h3>
+          <p>Suscríbete a nuestro boletín para recibir las últimas noticias de juegos y actualizaciones de la comunidad.</p>
           <form class="newsletter-form">
-            <input type="email" placeholder="Your email address" required>
-            <button type="submit" class="btn-subscribe">Subscribe</button>
+            <input type="email" placeholder="Tu dirección de correo" required>
+            <button type="submit" class="btn-subscribe">Suscribirse</button>
           </form>
         </div>
       </div>
       
-      <div class="footer-bottom">
-        <p>&copy; 2024 GamersHub. All rights reserved.</p>
+      <div class="footer-bottom">        <p>&copy; 2024 GamersHub. Todos los derechos reservados.</p>
         <div class="footer-links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-          <a href="#">Cookie Policy</a>
+          <a href="#">Política de Privacidad</a>
+          <a href="#">Términos de Servicio</a>
+          <a href="#">Política de Cookies</a>
         </div>
       </div>
     </footer>

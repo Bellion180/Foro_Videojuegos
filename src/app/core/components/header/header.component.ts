@@ -9,15 +9,14 @@ import type { User } from "../../models/user.model"; // Added User import
   selector: "app-header",
   standalone: true,
   imports: [RouterLink, RouterLinkActive, CommonModule, ThemeToggleComponent],
-  template: `
-    <header class="header" [class.scrolled]="isScrolled">
+  template: `    <header class="header" [class.scrolled]="isScrolled">
       <div class="floating-icons">
-        <span class="game-icon" style="left: 10%; animation-delay: 0s;">🎮</span>
-        <span class="game-icon" style="left: 25%; animation-delay: 2s;">🎲</span>
-        <span class="game-icon" style="left: 40%; animation-delay: 4s;">👾</span>
-        <span class="game-icon" style="left: 55%; animation-delay: 6s;">🏆</span>
-        <span class="game-icon" style="left: 70%; animation-delay: 8s;">⚔️</span>
-        <span class="game-icon" style="left: 85%; animation-delay: 10s;">🎯</span>
+        <span class="floating-icon">🎮</span>
+        <span class="floating-icon">🎲</span>
+        <span class="floating-icon">👾</span>
+        <span class="floating-icon">🏆</span>
+        <span class="floating-icon">⚔️</span>
+        <span class="floating-icon">🎯</span>
       </div>
       <div class="header-container">
         <div class="logo">
@@ -27,7 +26,7 @@ import type { User } from "../../models/user.model"; // Added User import
           </a>
         </div>
         
-        <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+        <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Alternar menú">
           <span class="bar"></span>
           <span class="bar"></span>
           <span class="bar"></span>
@@ -35,33 +34,33 @@ import type { User } from "../../models/user.model"; // Added User import
         
         <nav class="nav" [class.active]="mobileMenuOpen">
           <ul class="nav-list">
-            <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
-            <li><a routerLink="/forums" routerLinkActive="active">Forums</a></li>
-            <li><a routerLink="/threads/latest" routerLinkActive="active">Latest Discussions</a></li>
-            <li class="theme-toggle-container"><app-theme-toggle></app-theme-toggle></li>
-            @if (authService.isAuthStatusKnown()) {
-              @if (authService.isLoggedIn()) {
+            <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a></li>
+            <li><a routerLink="/forums" routerLinkActive="active">Foros</a></li>
+            <li><a routerLink="/threads/latest" routerLinkActive="active">Últimas Discusiones</a></li>
+            <li class="theme-toggle-container"><app-theme-toggle></app-theme-toggle></li>            <ng-container *ngIf="authService.isAuthStatusKnown()">
+              <ng-container *ngIf="authService.isLoggedIn(); else notLoggedIn">
                 <li class="dropdown">
                   <a class="dropdown-toggle">
                     <span class="user-avatar">
-                      <img [src]="currentUser?.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
+                      <img [src]="currentUser?.avatar || '/assets/images/default-avatar.png'" alt="Avatar de usuario">
                     </span>
-                    <span>{{ currentUser?.username || 'My Account' }}</span>
+                    <span>{{ currentUser?.username || 'Mi Cuenta' }}</span>
                   </a>
                   <ul class="dropdown-menu">
-                    <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
-                    <li><a routerLink="/profile/edit" routerLinkActive="active">Settings</a></li>
-                    <li><button (click)="logout()" class="logout-btn">Logout</button></li>
+                    <li><a routerLink="/profile" routerLinkActive="active">Mi Perfil</a></li>
+                    <li><a routerLink="/profile/edit" routerLinkActive="active">Ajustes</a></li>
+                    <li><button (click)="logout()" class="logout-btn">Cerrar Sesión</button></li>
                   </ul>
                 </li>
-              } @else {
-                <li><a routerLink="/auth/login" routerLinkActive="active" class="login-btn">Login</a></li>
-                <li><a routerLink="/auth/register" routerLinkActive="active" class="register-btn">Register</a></li>
-              }
-            } @else {
-              <!-- Optionally, show a loading indicator or nothing while auth status is unknown -->
-              <li><span class="loading-auth">Loading...</span></li>
-            }
+              </ng-container>
+              <ng-template #notLoggedIn>
+                <li><a routerLink="/auth/login" routerLinkActive="active" class="login-btn">Iniciar Sesión</a></li>
+                <li><a routerLink="/auth/register" routerLinkActive="active" class="register-btn">Registrarse</a></li>
+              </ng-template>
+            </ng-container>
+            <li *ngIf="!authService.isAuthStatusKnown()">
+              <span class="loading-auth">Cargando...</span>
+            </li>
           </ul>
         </nav>
       </div>
@@ -131,33 +130,50 @@ import type { User } from "../../models/user.model"; // Added User import
     @keyframes moveGrid {
       0% { transform: translateX(-50%) translateY(-50%) rotate(45deg); }
       100% { transform: translateX(0%) translateY(0%) rotate(45deg); }
-    }
-
-    .floating-icons {
+    }    .floating-icons {
       position: absolute;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      z-index: -1;
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .game-icon {
+    .floating-icon {
       position: absolute;
-      font-size: 1.2rem;
-      opacity: 0.2;
-      animation: floatIcon 10s linear infinite;
+      font-size: 24px;
+      opacity: 0;
+      animation: float 15s infinite linear;
     }
 
-    @keyframes floatIcon {
+    .floating-icon:nth-child(1) { left: 10%; animation-delay: 0s; top: -50px; }
+    .floating-icon:nth-child(2) { left: 30%; animation-delay: -2.5s; top: -50px; }
+    .floating-icon:nth-child(3) { left: 50%; animation-delay: -5s; top: -50px; }
+    .floating-icon:nth-child(4) { left: 70%; animation-delay: -7.5s; top: -50px; }
+    .floating-icon:nth-child(5) { left: 85%; animation-delay: -10s; top: -50px; }
+    .floating-icon:nth-child(6) { left: 95%; animation-delay: -12.5s; top: -50px; }
+
+    @keyframes float {
       0% {
-        transform: translateY(100%) rotate(0deg);
+        transform: translateY(-60px) rotate(0deg);
         opacity: 0;
       }
-      10% { opacity: 0.2; }
-      90% { opacity: 0.2; }
+      10% {
+        opacity: 0.5;
+      }
+      90% {
+        opacity: 0.5;
+      }
       100% {
-        transform: translateY(-100%) rotate(360deg);
+        transform: translateY(calc(100vh + 60px)) rotate(360deg);
         opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion) {
+      .floating-icon {
+        animation: none;
+        opacity: 0.3;
       }
     }
 
