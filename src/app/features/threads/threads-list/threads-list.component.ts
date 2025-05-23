@@ -12,19 +12,19 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="threads-container">
       <header class="page-header">
-        <h1>Latest Discussions</h1>
-        <p>Browse the most recent conversations across all forums</p>
+        <h1>Últimas Discusiones</h1>
+        <p>Explora las conversaciones más recientes en todos los foros</p>
       </header>
 
       <div class="thread-filters">
         <div class="filter-options">
-          <button class="filter-btn" [class.active]="currentFilter === 'latest'" (click)="setFilter('latest')">Latest</button>
-          <button class="filter-btn" [class.active]="currentFilter === 'popular'" (click)="setFilter('popular')">Popular</button>
-          <button class="filter-btn" [class.active]="currentFilter === 'unanswered'" (click)="setFilter('unanswered')">Unanswered</button>
+          <button class="filter-btn" [class.active]="currentFilter === 'latest'" (click)="setFilter('latest')">Más Recientes</button>
+          <button class="filter-btn" [class.active]="currentFilter === 'popular'" (click)="setFilter('popular')">Populares</button>
+          <button class="filter-btn" [class.active]="currentFilter === 'unanswered'" (click)="setFilter('unanswered')">Sin Respuesta</button>
         </div>
         <div class="search-box">
-          <input type="text" placeholder="Search threads..." [(ngModel)]="searchQuery" (keyup.enter)="searchThreads()">
-          <button (click)="searchThreads()">Search</button>
+          <input type="text" placeholder="Buscar hilos..." [(ngModel)]="searchQuery" (keyup.enter)="searchThreads()">
+          <button (click)="searchThreads()">Buscar</button>
         </div>
       </div>
 
@@ -35,9 +35,9 @@ import { CommonModule } from '@angular/common';
               <div class="thread-main">
                 <h2><a [routerLink]="['/threads', thread.id]">{{ thread.title }}</a></h2>
                 <div class="thread-meta">
-                  <span>Started by {{ thread.author.username }}</span>
+                  <span>Iniciado por {{ thread.author.username }}</span>
                   <span>{{ thread.createdAt | date }}</span>
-                  <span>in <a [routerLink]="['/forums', thread.forumId]">Forum Name</a></span>
+                  <span>en <a [routerLink]="['/forums', thread.forumId]">Nombre del Foro</a></span>
                 </div>
                 <div class="thread-tags" *ngIf="thread.tags && thread.tags.length > 0">
                   @for (tag of thread.tags; track tag) {
@@ -48,11 +48,11 @@ import { CommonModule } from '@angular/common';
               <div class="thread-stats">
                 <div class="stat">
                   <span class="stat-value">{{ thread.viewCount }}</span>
-                  <span class="stat-label">Views</span>
+                  <span class="stat-label">Vistas</span>
                 </div>
                 <div class="stat">
                   <span class="stat-value">{{ thread.replyCount }}</span>
-                  <span class="stat-label">Replies</span>
+                  <span class="stat-label">Respuestas</span>
                 </div>
               </div>
             </div>
@@ -60,13 +60,13 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="pagination">
-          <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Previous</button>
-          <span>Page {{ currentPage }} of {{ totalPages }}</span>
-          <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Next</button>
+          <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Anterior</button>
+          <span>Página {{ currentPage }} de {{ totalPages }}</span>
+          <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Siguiente</button>
         </div>
       } @else {
         <div class="no-threads">
-          <p>No threads found.</p>
+          <p>No se encontraron hilos.</p>
         </div>
       }
     </div>

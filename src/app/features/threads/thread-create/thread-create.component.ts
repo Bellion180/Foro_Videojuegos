@@ -14,15 +14,15 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="create-thread-container">
       <header class="page-header">
-        <h1>Create New Thread</h1>
-        <p>Start a new discussion in the community</p>
+        <h1>Crear Nuevo Hilo</h1>
+        <p>Inicia una nueva discusión en la comunidad</p>
       </header>
 
       <div class="thread-form">
         <div class="form-group">
-          <label for="forum">Forum</label>
+          <label for="forum">Foro</label>
           <select id="forum" [(ngModel)]="forumId" required>
-            <option value="">Select a forum</option>
+            <option value="">Selecciona un foro</option>
             @for (forum of forums; track forum.id) {
               <option [value]="forum.id">{{ forum.name }}</option>
             }
@@ -30,18 +30,18 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="form-group">
-          <label for="title">Title</label>
-          <input type="text" id="title" [(ngModel)]="title" placeholder="Enter a descriptive title" required>
+          <label for="title">Título</label>
+          <input type="text" id="title" [(ngModel)]="title" placeholder="Introduce un título descriptivo" required>
         </div>
 
         <div class="form-group">
-          <label for="content">Content</label>
-          <textarea id="content" [(ngModel)]="content" rows="10" placeholder="Write your post here..." required></textarea>
+          <label for="content">Contenido</label>
+          <textarea id="content" [(ngModel)]="content" rows="10" placeholder="Escribe tu mensaje aquí..." required></textarea>
         </div>
 
         <div class="form-group">
-          <label for="tags">Tags (optional)</label>
-          <input type="text" id="tags" [(ngModel)]="tagsInput" placeholder="Enter tags separated by commas">
+          <label for="tags">Etiquetas (opcional)</label>
+          <input type="text" id="tags" [(ngModel)]="tagsInput" placeholder="Introduce etiquetas separadas por comas">
           <div class="tags-preview" *ngIf="tagsArray.length > 0">
             @for (tag of tagsArray; track tag) {
               <span class="tag">{{ tag }} <button (click)="removeTag(tag)" class="remove-tag">×</button></span>
@@ -50,8 +50,8 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="form-actions">
-          <button class="btn secondary" (click)="cancel()">Cancel</button>
-          <button class="btn primary" [disabled]="!isFormValid()" (click)="createThread()">Create Thread</button>
+          <button class="btn secondary" (click)="cancel()">Cancelar</button>
+          <button class="btn primary" [disabled]="!isFormValid()" (click)="createThread()">Crear Hilo</button>
         </div>
       </div>
     </div>

@@ -14,38 +14,38 @@ import { CommonModule } from '@angular/common';
       @if (user) {
         <div class="profile-header">
           <div class="profile-avatar">
-            <img [src]="user.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
+            <img [src]="user.avatar || '/assets/images/default-avatar.png'" alt="Avatar del usuario">
           </div>
           <div class="profile-info">
             <h1>{{ user.username }}</h1>
             <div class="profile-meta">
-              <span>Member since {{ user.joinDate | date:'mediumDate' }}</span>
+              <span>Miembro desde {{ user.joinDate | date:'mediumDate' }}</span>
               <span>{{ user.role }}</span>
             </div>
             <div class="profile-stats">
               <div class="stat">
                 <span class="stat-value">{{ user.threadCount || 0 }}</span>
-                <span class="stat-label">Threads</span>
+                <span class="stat-label">Hilos</span>
               </div>
               <div class="stat">
                 <span class="stat-value">{{ user.postCount || 0 }}</span>
-                <span class="stat-label">Posts</span>
+                <span class="stat-label">Mensajes</span>
               </div>
             </div>
           </div>
           <div class="profile-actions">
-            <a routerLink="/profile/edit" class="btn primary">Edit Profile</a>
+            <a routerLink="/profile/edit" class="btn primary">Editar Perfil</a>
           </div>
         </div>
 
         <div class="profile-content">
           <div class="profile-section">
-            <h2>About Me</h2>
-            <p>{{ user.bio || 'No bio provided yet.' }}</p>
+            <h2>Sobre Mí</h2>
+            <p>{{ user.bio || 'Biografía no proporcionada todavía.' }}</p>
           </div>
 
           <div class="profile-section">
-            <h2>Recent Activity</h2>
+            <h2>Actividad Reciente</h2>
             @if (recentActivity.length > 0) {
               <div class="activity-list">
                 @for (activity of recentActivity; track activity.id) {
@@ -61,12 +61,12 @@ import { CommonModule } from '@angular/common';
                 }
               </div>
             } @else {
-              <p>No recent activity.</p>
+              <p>No hay actividad reciente.</p>
             }
           </div>
         </div>
       } @else {
-        <div class="loading">Loading profile...</div>
+        <div class="loading">Cargando perfil...</div>
       }
     </div>
   `,
@@ -244,19 +244,19 @@ export class ProfileViewComponent implements OnInit {
       {
         id: 1,
         type: "thread",
-        title: 'Started a new thread: "Best RPG games of 2024"',
+        title: 'Inició un nuevo hilo: "Mejores juegos RPG de 2024"',
         date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
       },
       {
         id: 2,
         type: "post",
-        title: 'Replied to "PC Building Guide for Gamers"',
+        title: 'Respondió a "Guía para armar PC para Gamers"',
         date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
       },
       {
         id: 3,
         type: "like",
-        title: 'Liked "Top 10 FPS Games of All Time"',
+        title: 'Le gustó "Top 10 Juegos FPS de Todos los Tiempos"',
         date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
       },
     ]

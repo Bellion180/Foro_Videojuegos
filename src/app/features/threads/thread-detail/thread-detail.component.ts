@@ -21,9 +21,9 @@ import { filter, Subscription } from "rxjs"
           <div class="thread-title">
             <h1>{{ thread.title }}</h1>
             <div class="thread-meta">
-              <span>Started by {{ thread.author.username }}</span>
+              <span>Iniciado por {{ thread.author.username }}</span>
               <span>{{ thread.createdAt | date }}</span>
-              <span>in <a [routerLink]="['/forums', thread.forumId]">Forum Name</a></span>
+              <span>en <a [routerLink]="['/forums', thread.forumId]">Nombre del Foro</a></span>
             </div>
           </div>
         </header>
@@ -33,13 +33,13 @@ import { filter, Subscription } from "rxjs"
           <div class="post original-post">
             <div class="post-sidebar">
               <div class="user-avatar">
-                <img [src]="thread.author.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
+                <img [src]="thread.author.avatar || '/assets/images/default-avatar.png'" alt="Avatar del usuario">
               </div>
               <div class="user-info">
                 <div class="username">{{ thread.author.username }}</div>
                 <div class="user-role">{{ thread.author.role }}</div>
-                <div class="join-date">Joined {{ thread.author.joinDate | date:'mediumDate' }}</div>
-                <div class="post-count">{{ thread.author.postCount || 0 }} posts</div>
+                <div class="join-date">Se unió el {{ thread.author.joinDate | date:'mediumDate' }}</div>
+                <div class="post-count">{{ thread.author.postCount || 0 }} mensajes</div>
               </div>
             </div>
             <div class="post-content">
@@ -47,9 +47,9 @@ import { filter, Subscription } from "rxjs"
               <div class="post-footer">
                 <div class="post-date">{{ thread.createdAt | date:'medium' }}</div>
                 <div class="post-actions">
-                  <button class="action-btn">Like</button>
+                  <!-- <button class="action-btn">Like</button>
                   <button class="action-btn">Quote</button>
-                  <button class="action-btn">Report</button>
+                  <button class="action-btn">Report</button> -->
                 </div>
               </div>
             </div>
@@ -64,13 +64,13 @@ import { filter, Subscription } from "rxjs"
                 }
                 <div class="post-sidebar">
                   <div class="user-avatar">
-                    <img [src]="post.author.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
+                    <img [src]="post.author.avatar || '/assets/images/default-avatar.png'" alt="Avatar del usuario">
                   </div>
                   <div class="user-info">
                     <div class="username">{{ post.author.username }}</div>
                     <div class="user-role">{{ post.author.role }}</div>
-                    <div class="join-date">Joined {{ post.author.joinDate | date:'mediumDate' }}</div>
-                    <div class="post-count">{{ post.author.postCount || 0 }} posts</div>
+                    <div class="join-date">Se unió el {{ post.author.joinDate | date:'mediumDate' }}</div>
+                    <div class="post-count">{{ post.author.postCount || 0 }} mensajes</div>
                   </div>
                 </div>
                 <div class="post-content">
@@ -83,9 +83,9 @@ import { filter, Subscription } from "rxjs"
                       }
                     </div>
                     <div class="post-actions">
-                      <button class="action-btn">Like</button>
+                      <!-- <button class="action-btn">Like</button>
                       <button class="action-btn">Quote</button>
-                      <button class="action-btn">Report</button>
+                      <button class="action-btn">Report</button> -->
                     </div>
                   </div>
                 </div>

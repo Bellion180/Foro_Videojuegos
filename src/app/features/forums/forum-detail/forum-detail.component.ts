@@ -21,20 +21,20 @@ import { Thread } from "../../../core/models/thread.model"
           </div>
           <div class="forum-actions">
             @if (authService.isLoggedIn()) {
-              <a [routerLink]="['/threads/create']" [queryParams]="{forumId: forum.id}" class="btn primary">New Thread</a>
+              <a [routerLink]="['/threads/create']" [queryParams]="{forumId: forum.id}" class="btn primary">Nuevo Hilo</a>
             }
           </div>
         </header>
 
         <div class="thread-filters">
           <div class="filter-options">
-            <button class="filter-btn" [class.active]="currentFilter === 'latest'" (click)="setFilter('latest')">Latest</button>
-            <button class="filter-btn" [class.active]="currentFilter === 'popular'" (click)="setFilter('popular')">Popular</button>
-            <button class="filter-btn" [class.active]="currentFilter === 'unanswered'" (click)="setFilter('unanswered')">Unanswered</button>
+            <button class="filter-btn" [class.active]="currentFilter === 'latest'" (click)="setFilter('latest')">Más Recientes</button>
+            <button class="filter-btn" [class.active]="currentFilter === 'popular'" (click)="setFilter('popular')">Populares</button>
+            <button class="filter-btn" [class.active]="currentFilter === 'unanswered'" (click)="setFilter('unanswered')">Sin Respuesta</button>
           </div>
           <div class="search-box">
-            <input type="text" placeholder="Search this forum..." [(ngModel)]="searchQuery" (keyup.enter)="searchThreads()">
-            <button (click)="searchThreads()">Search</button>
+            <input type="text" placeholder="Buscar en este foro..." [(ngModel)]="searchQuery" (keyup.enter)="searchThreads()">
+            <button (click)="searchThreads()">Buscar</button>
           </div>
         </div>
 
@@ -43,28 +43,28 @@ import { Thread } from "../../../core/models/thread.model"
             @for (thread of threads; track thread.id) {
               <div class="thread-item" [class.pinned]="thread.isPinned">
                 @if (thread.isPinned) {
-                  <div class="pin-indicator">Pinned</div>
+                  <div class="pin-indicator">Fijado</div>
                 }
                 <div class="thread-main">
                   <h2><a [routerLink]="['/threads', thread.id]">{{ thread.title }}</a></h2>
                   <div class="thread-meta">
-                    <span>Started by {{ thread.author.username }}</span>
+                    <span>Iniciado por {{ thread.author.username }}</span>
                     <span>{{ thread.createdAt | date }}</span>
                   </div>
                 </div>
                 <div class="thread-stats">
                   <div class="stat">
                     <span class="stat-value">{{ thread.viewCount }}</span>
-                    <span class="stat-label">Views</span>
+                    <span class="stat-label">Vistas</span>
                   </div>
                   <div class="stat">
                     <span class="stat-value">{{ thread.replyCount }}</span>
-                    <span class="stat-label">Replies</span>
+                    <span class="stat-label">Respuestas</span>
                   </div>
                 </div>
                 <div class="thread-last-reply" *ngIf="thread.lastReply">
                   <div class="last-reply-info">
-                    <span>Last reply by {{ thread.lastReply.author.username }}</span>
+                    <span>Última respuesta por {{ thread.lastReply.author.username }}</span>
                     <span>{{ thread.lastReply.createdAt | date:'short' }}</span>
                   </div>
                 </div>
@@ -73,22 +73,22 @@ import { Thread } from "../../../core/models/thread.model"
           </div>
 
           <div class="pagination">
-            <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Previous</button>
-            <span>Page {{ currentPage }} of {{ totalPages }}</span>
-            <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Next</button>
+            <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Anterior</button>
+            <span>Página {{ currentPage }} de {{ totalPages }}</span>
+            <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Siguiente</button>
           </div>
         } @else {
           <div class="no-threads">
-            <p>No threads found in this forum.</p>
+            <p>No se encontraron hilos en este foro.</p>
             @if (authService.isLoggedIn()) {
-              <a [routerLink]="['/threads/create']" [queryParams]="{forumId: forum.id}" class="btn primary">Start a New Discussion</a>
+              <a [routerLink]="['/threads/create']" [queryParams]="{forumId: forum.id}" class="btn primary">Iniciar una Nueva Discusión</a>
             } @else {
-              <p>Please <a routerLink="/auth/login">log in</a> to start a new discussion.</p>
+              <p>Por favor <a routerLink="/auth/login">inicia sesión</a> para iniciar una nueva discusión.</p>
             }
           </div>
         }
       } @else {
-        <div class="loading">Loading forum...</div>
+        <div class="loading">Cargando foro...</div>
       }
     </div>
   `,

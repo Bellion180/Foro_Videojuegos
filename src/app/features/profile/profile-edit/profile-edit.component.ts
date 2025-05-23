@@ -14,8 +14,8 @@ import { NotificationService } from "../../../core/services/notification.service
   template: `
     <div class="profile-edit-container">
       <header class="page-header">
-        <h1>Edit Profile</h1>
-        <p>Update your personal information</p>
+        <h1>Editar Perfil</h1>
+        <p>Actualiza tu información personal</p>
       </header>
 
       @if (errorMessage) {
@@ -29,72 +29,72 @@ import { NotificationService } from "../../../core/services/notification.service
       @if (user) {
         <div class="profile-form">
           <div class="form-section">
-            <h2>Profile Picture</h2>
+            <h2>Foto de Perfil</h2>
             <div class="avatar-upload">
               <div class="current-avatar">
-                <img [src]="avatarPreview || user.avatar || '/assets/images/default-avatar.png'" alt="User avatar">
+                <img [src]="avatarPreview || user.avatar || '/assets/images/default-avatar.png'" alt="Avatar del usuario">
               </div>
               <div class="avatar-actions">
-                <label for="avatar-upload" class="btn secondary">Choose Image</label>
+                <label for="avatar-upload" class="btn secondary">Elegir Imagen</label>
                 <input type="file" id="avatar-upload" accept="image/*" (change)="onAvatarSelected($event)" class="hidden-input">
                 @if (avatarFile) {
-                  <button class="btn danger" (click)="removeAvatar()">Remove</button>
+                  <button class="btn danger" (click)="removeAvatar()">Eliminar</button>
                 }
               </div>
-              <p class="avatar-help">Recommended size: 200x200 pixels. Max file size: 2MB.</p>
+              <p class="avatar-help">Tamaño recomendado: 200x200 píxeles. Tamaño máximo de archivo: 2MB.</p>
             </div>
           </div>
 
           <div class="form-section">
-            <h2>Personal Information</h2>
+            <h2>Información Personal</h2>
             <div class="form-group">
-              <label for="username">Username</label>
+              <label for="username">Nombre de usuario</label>
               <input type="text" id="username" [(ngModel)]="formData.username" name="username">
             </div>
 
             <div class="form-group">
-              <label for="email">Email</label>
+              <label for="email">Correo Electrónico</label>
               <input type="email" id="email" [(ngModel)]="formData.email" name="email" disabled>
-              <p class="field-help">Email cannot be changed. Contact support for assistance.</p>
+              <p class="field-help">El correo electrónico no se puede cambiar. Contacta con el soporte para obtener ayuda.</p>
             </div>
 
             <div class="form-group">
-              <label for="bio">Bio</label>
-              <textarea id="bio" [(ngModel)]="formData.bio" name="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
+              <label for="bio">Biografía</label>
+              <textarea id="bio" [(ngModel)]="formData.bio" name="bio" rows="4" placeholder="Cuéntanos sobre ti..."></textarea>
             </div>
           </div>
 
           <div class="form-section">
-            <h2>Change Password</h2>
+            <h2>Cambiar Contraseña</h2>
             <div class="form-group">
-              <label for="currentPassword">Current Password</label>
+              <label for="currentPassword">Contraseña Actual</label>
               <input type="password" id="currentPassword" [(ngModel)]="passwordData.currentPassword" name="currentPassword">
             </div>
 
             <div class="form-group">
-              <label for="newPassword">New Password</label>
+              <label for="newPassword">Nueva Contraseña</label>
               <input type="password" id="newPassword" [(ngModel)]="passwordData.newPassword" name="newPassword">
             </div>
 
             <div class="form-group">
-              <label for="confirmPassword">Confirm New Password</label>
+              <label for="confirmPassword">Confirmar Nueva Contraseña</label>
               <input type="password" id="confirmPassword" [(ngModel)]="passwordData.confirmPassword" name="confirmPassword">
             </div>
 
             <button class="btn secondary" (click)="changePassword()" [disabled]="isPasswordChanging">
-              {{ isPasswordChanging ? 'Changing Password...' : 'Change Password' }}
+              {{ isPasswordChanging ? 'Cambiando Contraseña...' : 'Cambiar Contraseña' }}
             </button>
           </div>
 
           <div class="form-actions">
-            <button class="btn secondary" routerLink="/profile">Cancel</button>
+            <button class="btn secondary" routerLink="/profile">Cancelar</button>
             <button class="btn primary" (click)="saveProfile()" [disabled]="isSaving">
-              {{ isSaving ? 'Saving...' : 'Save Changes' }}
+              {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
           </div>
         </div>
       } @else {
-        <div class="loading">Loading profile...</div>
+        <div class="loading">Cargando perfil...</div>
       }
     </div>
   `,
@@ -384,19 +384,19 @@ export class ProfileEditComponent implements OnInit {
     });
   }  changePassword(): void {
     if (!this.passwordData.currentPassword || !this.passwordData.newPassword || !this.passwordData.confirmPassword) {
-      this.errorMessage = "Please fill in all password fields."
+      this.errorMessage = "Por favor, rellena todos los campos de contraseña."
       this.notificationService.warning(this.errorMessage);
       return
     }
 
     if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
-      this.errorMessage = "New passwords do not match."
+      this.errorMessage = "Las nuevas contraseñas no coinciden."
       this.notificationService.warning(this.errorMessage);
       return
     }
 
     if (this.passwordData.newPassword.length < 8) {
-      this.errorMessage = "New password must be at least 8 characters long."
+      this.errorMessage = "La nueva contraseña debe tener al menos 8 caracteres."
       this.notificationService.warning(this.errorMessage);
       return
     }
@@ -418,7 +418,7 @@ export class ProfileEditComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.isPasswordChanging = false;
-        this.successMessage = "Password changed successfully!";
+        this.successMessage = "¡Contraseña cambiada con éxito!";
         this.notificationService.success(this.successMessage);
         this.passwordData = {
           currentPassword: "",
@@ -428,7 +428,7 @@ export class ProfileEditComponent implements OnInit {
       },
       error: (error) => {
         this.isPasswordChanging = false;
-        this.errorMessage = error.message || "Error changing password. Please check your current password.";
+        this.errorMessage = error.message || "Error al cambiar la contraseña. Por favor, verifica tu contraseña actual.";
         this.notificationService.error(this.errorMessage);
         console.error("Error changing password:", error);
       }

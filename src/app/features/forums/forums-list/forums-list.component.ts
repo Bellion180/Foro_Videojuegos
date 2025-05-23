@@ -11,8 +11,8 @@ import type { Forum } from "../../../core/models/forum.model"
   template: `
     <div class="forums-container">
       <header class="page-header">
-        <h1>Forums</h1>
-        <p>Browse all discussion categories</p>
+        <h1>Foros</h1>
+        <p>Explora todas las categorías de discusión</p>
       </header>
 
       <div class="forums-list">
@@ -29,18 +29,18 @@ import type { Forum } from "../../../core/models/forum.model"
             <div class="forum-stats">
               <div class="stat">
                 <span class="stat-value">{{ forum.threadCount }}</span>
-                <span class="stat-label">Threads</span>
+                <span class="stat-label">Hilos</span>
               </div>
               <div class="stat">
                 <span class="stat-value">{{ forum.postCount }}</span>
-                <span class="stat-label">Posts</span>
+                <span class="stat-label">Mensajes</span>
               </div>
             </div>
             <div class="forum-last-post" *ngIf="forum.lastPost">
               <div class="last-post-info">
-                <span class="post-title">{{ forum.lastPost?.title }}</span>
-                <span class="post-meta" *ngIf="forum.lastPost?.author">
-                  by {{ forum.lastPost?.author?.username }} • {{ forum.lastPost?.date | date:'short' }}
+                <span class="post-title">{{ forum.lastPost.title }}</span>
+                <span class="post-meta" *ngIf="forum.lastPost.author">
+                  por {{ forum.lastPost.author.username }} • {{ forum.lastPost.date | date:'short' }}
                 </span>
               </div>
             </div>
