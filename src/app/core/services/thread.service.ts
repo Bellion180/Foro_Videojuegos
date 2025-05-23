@@ -1,10 +1,16 @@
 import { Injectable } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import { type Observable, throwError } from "rxjs"
+import { map } from "rxjs/operators"
 import type { Thread } from "../models/thread.model"
 import type { Post } from "../models/post.model"
 import { environment } from "../../../environments/environment"
 import { catchError, tap } from "rxjs/operators"
+
+interface CreateThreadResponse {
+  message: string;
+  thread: Thread;
+}
 
 @Injectable({
   providedIn: "root",
@@ -59,9 +65,15 @@ export class ThreadService {
   }
 
   createThread(thread: Partial<Thread>): Observable<Thread> {
-    return this.http.post<Thread>(this.apiUrl, thread).pipe(
+    console.log('Enviando solicitud para crear thread:', thread);
+    return this.http.post<CreateThreadResponse>(this.apiUrl, thread).pipe(
+      map(response => response.thread),
+      tap(thread => {
+        console.log('Thread creado:', thread);
+      }),
       catchError((error) => {
-        return throwError(() => new Error(error.error.message || "Error al crear el hilo"))
+        console.error('Error al crear thread:', error);
+        return throwError(() => new Error(error.error?.message || "Error al crear el hilo"))
       }),
     )
   }
