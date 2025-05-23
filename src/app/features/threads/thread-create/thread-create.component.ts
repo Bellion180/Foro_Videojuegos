@@ -1,8 +1,9 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router"; // Import regular
-import { ForumService } from "../../../core/services/forum.service"; // Import regular
-import { ThreadService } from "../../../core/services/thread.service"; // Import regular
-import { Forum } from "../../../core/models/forum.model"; // Puede mantenerse como type si es interfaz
+import { ActivatedRoute, Router } from "@angular/router";
+import { ForumService } from "../../../core/services/forum.service";
+import { ThreadService } from "../../../core/services/thread.service";
+import { NotificationService } from "../../../core/services/notification.service";
+import { Forum } from "../../../core/models/forum.model";
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -54,6 +55,19 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
     </div>
+
+    @if (showConfirmDialog) {
+      <div class="dialog-overlay">
+        <div class="dialog">
+          <h2>¡Hilo creado exitosamente!</h2>
+          <p>¿Qué te gustaría hacer ahora?</p>
+          <div class="dialog-actions">
+            <button class="btn secondary" (click)="createAnotherThread()">Crear otro hilo</button>
+            <button class="btn primary" (click)="viewCreatedThread()">Ver el hilo creado</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [
     `
@@ -154,21 +168,59 @@ import { CommonModule } from '@angular/common';
     .secondary:hover {
       background-color: #2a2a4e;
     }
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .dialog {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .dialog h2 {
+      color: #1a1a2e;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    .dialog p {
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
   `,
   ],
 })
 export class ThreadCreateComponent implements OnInit {
-  forums: Forum[] = []
-  forumId: number | string = ""
-  title = ""
-  content = ""
-  tagsInput = ""
+  forums: Forum[] = [];
+  forumId: number | string = "";
+  title = "";
+  content = "";
+  tagsInput = "";
+  showConfirmDialog = false;
+  private newThreadId: number | null = null;
 
   constructor(
     private forumService: ForumService,
     private threadService: ThreadService,
     private router: Router,
     private route: ActivatedRoute,
+    private notificationService: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -204,18 +256,74 @@ export class ThreadCreateComponent implements OnInit {
   }
 
   createThread(): void {
-    if (!this.isFormValid()) return
+    if (!this.isFormValid()) return;
 
     const newThread = {
       title: this.title,
       content: this.content,
       forumId: Number(this.forumId),
       tags: this.tagsArray,
+    };
+
+    console.log('Enviando datos del nuevo thread:', newThread);
+
+    this.threadService.createThread(newThread).subscribe({
+      next: (thread) => {
+        console.log('Thread creado:', thread);
+        
+        if (!thread || !thread.id) {
+          console.error('No se pudo obtener el ID del hilo:', thread);
+          this.notificationService.error('Error: No se pudo obtener el ID del hilo creado');
+          return;
+        }
+
+        this.newThreadId = thread.id;
+        console.log('ID del nuevo thread:', this.newThreadId);
+        
+        this.notificationService.success('¡Hilo creado exitosamente!');
+        this.showConfirmDialog = true;
+      },
+      error: (error) => {
+        console.error('Error al crear el hilo:', error);
+        this.notificationService.error('Error al crear el hilo: ' + (error.message || 'Error desconocido'));
+      }
+    });
+  }
+
+  createAnotherThread(): void {
+    this.showConfirmDialog = false;
+    this.newThreadId = null;
+    this.title = '';
+    this.content = '';
+    this.tagsInput = '';
+  }
+
+  viewCreatedThread(): void {
+    console.log('Intentando navegar al thread con ID:', this.newThreadId);
+    
+    if (!this.newThreadId) {
+      console.error('No se encontró el ID del thread');
+      this.notificationService.error('Error: No se puede navegar al hilo');
+      return;
     }
 
-    this.threadService.createThread(newThread).subscribe((thread) => {
-      this.router.navigate(["/threads", thread.id])
-    })
+    this.showConfirmDialog = false;
+    
+    // Usar una promesa para asegurar que la navegación ocurra después de que el diálogo se cierre
+    Promise.resolve().then(() => {
+      console.log('Navegando a:', `/threads/${this.newThreadId}`);
+      this.router.navigate(['/threads', this.newThreadId])
+        .then(success => {
+          if (!success) {
+            console.error('Fallo en la navegación');
+            this.notificationService.error('Error al navegar al hilo creado');
+          }
+        })
+        .catch(error => {
+          console.error('Error durante la navegación:', error);
+          this.notificationService.error('Error al navegar al hilo creado');
+        });
+    });
   }
 
   cancel(): void {

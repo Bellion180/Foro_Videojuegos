@@ -1,11 +1,14 @@
-import { Component, OnInit } from "@angular/core"
+import { Component, OnInit, OnDestroy } from "@angular/core"
 import { ActivatedRoute, RouterLink } from "@angular/router"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { ThreadService } from "../../../core/services/thread.service"
 import { AuthService } from "../../../core/services/auth.service"
+import { NotificationService } from "../../../core/services/notification.service"
 import { Thread } from "../../../core/models/thread.model"
 import { Post } from "../../../core/models/post.model"
+import { User } from "../../../core/models/user.model"
+import { filter, Subscription } from "rxjs"
 
 @Component({
   selector: "app-thread-detail",
@@ -22,12 +25,6 @@ import { Post } from "../../../core/models/post.model"
               <span>{{ thread.createdAt | date }}</span>
               <span>in <a [routerLink]="['/forums', thread.forumId]">Forum Name</a></span>
             </div>
-          </div>
-          <div class="thread-actions">
-            <button class="btn secondary">Share</button>
-            @if (authService.isLoggedIn()) {
-              <button class="btn primary">Reply</button>
-            }
           </div>
         </header>
 
@@ -56,12 +53,14 @@ import { Post } from "../../../core/models/post.model"
                 </div>
               </div>
             </div>
-          </div>          <!-- Replies -->
+          </div>
+
+          <!-- Replies -->
           @if (posts && posts.length > 0) {
             @for (post of posts; track post.id) {
               <div class="post reply" [class.accepted-answer]="post.isAcceptedAnswer">
                 @if (post.isAcceptedAnswer) {
-                  <div class="accepted-badge">Accepted Answer</div>
+                  <div class="accepted-badge">Respuesta Aceptada</div>
                 }
                 <div class="post-sidebar">
                   <div class="user-avatar">
@@ -80,7 +79,7 @@ import { Post } from "../../../core/models/post.model"
                     <div class="post-date">
                       {{ post.createdAt | date:'medium' }}
                       @if (post.isEdited) {
-                        <span class="edited-indicator">(edited)</span>
+                        <span class="edited-indicator">(editado)</span>
                       }
                     </div>
                     <div class="post-actions">
@@ -92,33 +91,50 @@ import { Post } from "../../../core/models/post.model"
                 </div>
               </div>
             }
-          } @else {            <div class="no-replies">
-              <p>No replies yet. Be the first to reply!</p>
+          } @else {
+            <div class="no-replies">
+              <p>No hay respuestas todavía. ¡Sé el primero en responder!</p>
             </div>
           }
         </div>
 
         @if (authService.isLoggedIn()) {
           <div class="reply-form">
-            <h3>Post a Reply</h3>
-            <textarea placeholder="Write your reply here..." [(ngModel)]="replyContent" rows="6"></textarea>
+            <h3>Publica una Respuesta</h3>
+            <textarea 
+              placeholder="Escribe tu respuesta aquí..." 
+              [(ngModel)]="replyContent" 
+              rows="6"
+              [disabled]="isSubmitting"
+            ></textarea>
             <div class="form-actions">
-              <button class="btn secondary">Cancel</button>
-              <button class="btn primary" (click)="submitReply()">Post Reply</button>
+              <button 
+                class="btn secondary" 
+                [disabled]="isSubmitting"
+                (click)="replyContent = ''"
+              >
+                Cancelar
+              </button>
+              <button 
+                class="btn primary" 
+                (click)="submitReply()"
+                [disabled]="!replyContent.trim() || isSubmitting"
+              >
+                {{ isSubmitting ? 'Enviando...' : 'Publicar Respuesta' }}
+              </button>
             </div>
           </div>
         } @else {
           <div class="login-prompt">
-            <p>Please <a routerLink="/auth/login" [queryParams]="{returnUrl: currentUrl}">log in</a> to post a reply.</p>
+            <p>Por favor <a routerLink="/auth/login" [queryParams]="{returnUrl: currentUrl}">inicia sesión</a> para publicar una respuesta.</p>
           </div>
         }
       } @else {
-        <div class="loading">Loading thread...</div>
+        <div class="loading">Cargando hilo...</div>
       }
     </div>
   `,
-  styles: [
-    `
+  styles: [`
     .thread-detail-container {
       max-width: 1000px;
       margin: 0 auto;
@@ -129,6 +145,10 @@ import { Post } from "../../../core/models/post.model"
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 2rem;
+      background-color: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .thread-title h1 {
       font-size: 1.8rem;
@@ -145,36 +165,11 @@ import { Post } from "../../../core/models/post.model"
     .thread-meta a {
       color: #0072b1;
       text-decoration: none;
+      transition: color 0.2s;
     }
     .thread-meta a:hover {
+      color: #005380;
       text-decoration: underline;
-    }
-    .thread-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s;
-      border: none;
-      cursor: pointer;
-    }
-    .primary {
-      background-color: #ff9f1c;
-      color: #1a1a2e;
-    }
-    .primary:hover {
-      background-color: #f08c00;
-    }
-    .secondary {
-      background-color: #1a1a2e;
-      color: white;
-    }
-    .secondary:hover {
-      background-color: #2a2a4e;
     }
     .posts-container {
       display: flex;
@@ -188,6 +183,10 @@ import { Post } from "../../../core/models/post.model"
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       position: relative;
+      transition: transform 0.2s;
+    }
+    .post:hover {
+      transform: translateY(-2px);
     }
     .original-post {
       border-left: 4px solid #ff9f1c;
@@ -222,6 +221,8 @@ import { Post } from "../../../core/models/post.model"
       border-radius: 50%;
       overflow: hidden;
       margin-bottom: 1rem;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .user-avatar img {
       width: 100%;
@@ -234,11 +235,16 @@ import { Post } from "../../../core/models/post.model"
     .username {
       font-weight: bold;
       margin-bottom: 0.25rem;
+      color: #1a1a2e;
     }
     .user-role {
       color: #0072b1;
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
+      padding: 0.2rem 0.5rem;
+      background-color: rgba(0,114,177,0.1);
+      border-radius: 4px;
+      display: inline-block;
     }
     .join-date, .post-count {
       font-size: 0.8rem;
@@ -254,6 +260,7 @@ import { Post } from "../../../core/models/post.model"
     .post-body {
       flex: 1;
       line-height: 1.6;
+      color: #333;
     }
     .post-footer {
       display: flex;
@@ -270,6 +277,7 @@ import { Post } from "../../../core/models/post.model"
     .edited-indicator {
       font-style: italic;
       margin-left: 0.5rem;
+      color: #666;
     }
     .post-actions {
       display: flex;
@@ -283,19 +291,27 @@ import { Post } from "../../../core/models/post.model"
       font-size: 0.9rem;
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
     }
     .action-btn:hover {
       background-color: #e6f7ff;
+      color: #005380;
     }
     .reply-form {
       background-color: #f8f9fa;
       padding: 1.5rem;
       border-radius: 8px;
       margin-top: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .reply-form h3 {
       margin-top: 0;
       margin-bottom: 1rem;
+      color: #1a1a2e;
+      font-size: 1.2rem;
     }
     .reply-form textarea {
       width: 100%;
@@ -304,11 +320,49 @@ import { Post } from "../../../core/models/post.model"
       border-radius: 4px;
       resize: vertical;
       margin-bottom: 1rem;
+      min-height: 120px;
+      font-family: inherit;
+      font-size: inherit;
+      transition: border-color 0.2s;
+    }
+    .reply-form textarea:focus {
+      outline: none;
+      border-color: #0072b1;
+    }
+    .reply-form textarea:disabled {
+      background-color: #f0f0f0;
+      cursor: not-allowed;
     }
     .form-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 0.5rem;
+      gap: 1rem;
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .primary {
+      background-color: #0072b1;
+      color: white;
+    }
+    .primary:hover:not(:disabled) {
+      background-color: #005380;
+    }
+    .secondary {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    .secondary:hover:not(:disabled) {
+      background-color: #e0e0e0;
     }
     .login-prompt {
       text-align: center;
@@ -316,10 +370,12 @@ import { Post } from "../../../core/models/post.model"
       background-color: #f8f9fa;
       border-radius: 8px;
       margin-top: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .login-prompt a {
       color: #0072b1;
       text-decoration: none;
+      font-weight: 500;
     }
     .login-prompt a:hover {
       text-decoration: underline;
@@ -335,68 +391,150 @@ import { Post } from "../../../core/models/post.model"
       background-color: #f8f9fa;
       border-radius: 8px;
       margin: 1rem 0;
+      color: #666;
     }
-  `,
-  ],
+    @media (max-width: 768px) {
+      .post {
+        flex-direction: column;
+      }
+      .post-sidebar {
+        width: 100%;
+        border-radius: 8px 8px 0 0;
+      }
+      .user-avatar {
+        width: 60px;
+        height: 60px;
+      }
+      .thread-header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .form-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .btn {
+        width: 100%;
+      }
+    }
+  `],
 })
-export class ThreadDetailComponent implements OnInit {
-  thread: Thread | null = null
-  posts: Post[] = []
-  replyContent = ""
-  currentUrl = ""
+export class ThreadDetailComponent implements OnInit, OnDestroy {
+  thread: Thread | null = null;
+  posts: Post[] = [];
+  replyContent = "";
+  currentUrl = "";
+  isSubmitting = false;
+  currentUser$ = null as any;
+  private subscriptions = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
     private threadService: ThreadService,
+    private notificationService: NotificationService,
     public authService: AuthService,
   ) {}
 
   ngOnInit(): void {
-    this.currentUrl = window.location.pathname
-    this.route.paramMap.subscribe((params) => {
-      const threadId = Number(params.get("id"))
+    this.currentUser$ = this.authService.currentUser$;
+    this.currentUrl = window.location.pathname;
+    
+    const routeSub = this.route.paramMap.subscribe((params) => {
+      const threadId = Number(params.get("id"));
       if (threadId) {
-        this.loadThread(threadId)
-        this.loadPosts(threadId)
+        this.loadThread(threadId);
+        this.loadPosts(threadId);
       }
-    })
+    });
+    
+    this.subscriptions.add(routeSub);
   }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   loadThread(id: number): void {
-    console.log("Cargando thread ID:", id);
-    this.threadService.getThread(id).subscribe({
+    const threadSub = this.threadService.getThread(id).subscribe({
       next: (thread) => {
-        console.log("Thread recibido:", thread);
         this.thread = thread;
       },
       error: (err) => {
-        console.error("Error al cargar el thread:", err);
+        this.notificationService.error("Error al cargar el hilo: " + err.message);
       }
     });
+    
+    this.subscriptions.add(threadSub);
   }
+
   loadPosts(threadId: number): void {
-    console.log("Cargando posts para el thread ID:", threadId);
-    this.threadService.getPostsByThread(threadId).subscribe({
+    const postsSub = this.threadService.getPostsByThread(threadId).subscribe({
       next: (posts) => {
-        console.log("Posts recibidos:", posts);
         this.posts = posts;
       },
       error: (err) => {
-        console.error("Error al cargar los posts:", err);
+        this.notificationService.error("Error al cargar las respuestas: " + err.message);
       }
     });
+    
+    this.subscriptions.add(postsSub);
   }
 
   submitReply(): void {
-    if (!this.thread || !this.replyContent.trim()) return
+    if (!this.thread || !this.replyContent.trim() || this.isSubmitting) return;
 
+    this.isSubmitting = true;
     const newPost: Partial<Post> = {
-      content: this.replyContent,
+      content: this.replyContent.trim(),
       threadId: this.thread.id,
-    }
+    };
 
-    this.threadService.createPost(this.thread.id, newPost).subscribe((post) => {
-      this.posts.push(post)
-      this.replyContent = ""
-    })
+    // Primero verificamos que tengamos el usuario actual
+    const submitSub = this.currentUser$.pipe(
+      filter((user): user is User => user !== null && user !== undefined)
+    ).subscribe((currentUser: User) => {
+      const createPostSub = this.threadService.createPost(this.thread!.id, newPost).subscribe({
+        next: (post) => {
+          // Solo actualizamos el estado local después de un guardado exitoso
+          if (this.thread) {
+            this.thread.replyCount = (this.thread.replyCount || 0) + 1;
+          }
+
+          // Añadir el nuevo post con todos los datos necesarios
+          const newPost: Post = {
+            ...post,
+            author: currentUser,
+            createdAt: new Date(),
+            isEdited: false,
+            content: this.replyContent.trim(),
+            id: post.id,
+            threadId: this.thread!.id
+          };
+
+          this.posts = [...this.posts, newPost];
+
+          // Limpiar el formulario y mostrar notificación
+          this.replyContent = "";
+          this.isSubmitting = false;
+          this.notificationService.success("¡Tu respuesta ha sido publicada correctamente!");
+
+          // Hacer scroll hasta el nuevo comentario
+          setTimeout(() => {
+            const lastPost = document.querySelector('.posts-container .post:last-child');
+            if (lastPost) {
+              lastPost.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 100);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          this.notificationService.error("Error al publicar tu respuesta: " + error.message);
+        }
+      });
+      
+      this.subscriptions.add(createPostSub);
+    });
+    
+    this.subscriptions.add(submitSub);
   }
 }
