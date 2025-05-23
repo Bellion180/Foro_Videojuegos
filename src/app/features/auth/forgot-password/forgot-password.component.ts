@@ -1,11 +1,14 @@
 import { Component } from "@angular/core"
 import { RouterLink } from "@angular/router"
 import { FormsModule } from '@angular/forms';
+import { AuthService } from "../../../core/services/auth.service";
+import { NotificationService } from "../../../core/services/notification.service";
+import { CommonModule } from "@angular/common";
 
 @Component({
   selector: "app-forgot-password",
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, CommonModule],
   template: `
     <div class="auth-container">
       <div class="auth-card">
@@ -143,19 +146,29 @@ export class ForgotPasswordComponent {
   errorMessage = ""
   successMessage = ""
 
+  constructor(
+    private authService: AuthService,
+    private notificationService: NotificationService
+  ) {}
+
   resetPassword(): void {
     if (!this.email) {
-      this.errorMessage = "Please enter your email address."
+      this.errorMessage = "Por favor ingresa tu dirección de correo electrónico."
       return
     }
 
     this.isLoading = true
     this.errorMessage = ""
 
-    // In a real app, this would call an API endpoint
-    setTimeout(() => {
-      this.isLoading = false
-      this.successMessage = "Password reset link has been sent to your email. Please check your inbox."
-    }, 1500)
+    this.authService.forgotPassword(this.email).subscribe({
+      next: (response) => {
+        this.isLoading = false
+        this.successMessage = "Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico. Por favor revisa tu bandeja de entrada."
+      },
+      error: (error) => {
+        this.isLoading = false
+        this.errorMessage = error.error?.message || "Ha ocurrido un error al procesar tu solicitud. Por favor intenta de nuevo más tarde."
+      }
+    })
   }
 }

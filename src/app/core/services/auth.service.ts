@@ -537,4 +537,36 @@ export class AuthService {
     storage.setItem(this.userKey, JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
+
+  /**
+   * Solicita un enlace para restablecer la contraseña
+   * @param email Email del usuario
+   * @returns Observable con la respuesta del servidor
+   */
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/forgot-password`, { email }).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Restablece la contraseña usando un token
+   * @param email Email del usuario
+   * @param token Token de restablecimiento
+   * @param newPassword Nueva contraseña
+   * @returns Observable con la respuesta del servidor
+   */
+  resetPassword(email: string, token: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, { 
+      email, 
+      token, 
+      newPassword 
+    }).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
+  }
 }

@@ -9,6 +9,8 @@ router.post("/login", authController.login)
 router.post("/refresh-token", authController.refreshToken)
 router.get("/verify-email", authController.verifyEmail)
 router.post("/resend-verification", authController.resendVerification)
+router.post("/forgot-password", authController.forgotPassword)
+router.post("/reset-password", authController.resetPassword)
 
 // Rutas protegidas
 router.get("/profile", verifyToken, authController.getProfile)

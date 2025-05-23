@@ -1,9 +1,17 @@
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const { getRepository } = require("typeorm")
+const { getRepository, MoreThan } = require("typeorm")
 const User = require("../entities/User")
 const crypto = require("crypto")
-const { sendWelcomeEmail, sendVerificationEmail, verifyToken, validateEmailFormat } = require("../services/emailService")
+const { 
+  sendWelcomeEmail, 
+  sendVerificationEmail, 
+  verifyToken, 
+  validateEmailFormat, 
+  sendPasswordResetEmail, 
+  verifyPasswordResetToken,
+  consumePasswordResetToken 
+} = require("../services/emailService")
 
 // Almacén de refresh tokens (en producción debe ser una base de datos)
 // formato: { userId: { token: string, expiresAt: Date } }
@@ -343,6 +351,101 @@ exports.resendVerification = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al reenviar verificación:", error);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+}
+
+// Solicitar restablecimiento de contraseña
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: "El email es requerido" });
+    }
+    
+    // Validar formato de email
+    if (!validateEmailFormat(email)) {
+      return res.status(400).json({ message: "Formato de email inválido" });
+    }
+    
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
+    
+    // Por seguridad, no revelamos si el usuario existe o no
+    if (!user) {
+      return res.status(200).json({ 
+        message: "Si tu email está registrado, recibirás un enlace para restablecer tu contraseña."
+      });
+    }
+    
+    // Generar y enviar token de restablecimiento
+    try {
+      await sendPasswordResetEmail(email, user.username);
+      
+      return res.status(200).json({ 
+        message: "Si tu email está registrado, recibirás un enlace para restablecer tu contraseña."
+      });
+    } catch (emailError) {
+      console.error("Error al enviar email de restablecimiento:", emailError);
+      return res.status(500).json({ message: "Error al enviar el correo de restablecimiento" });
+    }
+  } catch (error) {
+    console.error("Error al solicitar restablecimiento de contraseña:", error);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+};
+
+// Restablecer contraseña con token
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, token, newPassword } = req.body;
+    
+    if (!email || !token || !newPassword) {
+      return res.status(400).json({ 
+        message: "Email, token y nueva contraseña son requeridos" 
+      });
+    }
+    
+    // Validar formato de email
+    if (!validateEmailFormat(email)) {
+      return res.status(400).json({ message: "Formato de email inválido" });
+    }
+    
+    // Validar que la contraseña tenga al menos 8 caracteres
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        message: "La contraseña debe tener al menos 8 caracteres" 
+      });
+    }
+    
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    
+    // Verificar el token
+    if (!verifyPasswordResetToken(email, token)) {
+      return res.status(400).json({ 
+        message: "Token de restablecimiento inválido o expirado" 
+      });
+    }
+    
+    // Establecer nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await userRepository.save(user);
+    
+    // Consumir el token para que no se pueda usar nuevamente
+    consumePasswordResetToken(email);
+    
+    return res.status(200).json({ 
+      message: "Contraseña restablecida exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña."
+    });
+  } catch (error) {
+    console.error("Error al restablecer contraseña:", error);
     return res.status(500).json({ message: "Error en el servidor" });
   }
 };

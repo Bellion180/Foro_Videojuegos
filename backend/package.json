@@ -2,14 +2,18 @@
   "name": "gaming-forum-backend",
   "version": "1.0.0",
   "description": "Backend para el foro de gaming",
-  "main": "src/index.js",
-  "scripts": {
+  "main": "src/index.js",  "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "create-test-user": "node src/scripts/create-test-user.js",
     "test-avatar": "node src/scripts/test-avatar-upload.js",
     "test-auth": "node src/scripts/test-auth.js",
-    "test-refresh-token": "node src/scripts/test-refresh-token.js"
+    "test-refresh-token": "node src/scripts/test-refresh-token.js",
+    "init-db": "node src/scripts/init-db.js",
+    "init-db-schema": "node src/scripts/init-db-schema.js",
+    "update-db-schema": "node src/scripts/update-db-schema.js",
+    "verify-db": "node src/scripts/verify-db-structure.js",
+    "test-likes-reports": "node src/scripts/test-likes-reports.js"
   },
   "dependencies": {
     "axios": "^1.9.0",

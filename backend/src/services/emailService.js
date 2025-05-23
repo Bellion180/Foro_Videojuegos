@@ -4,6 +4,8 @@ require('dotenv').config();
 
 // Almacenamiento temporal para tokens de verificación (en producción, usar base de datos)
 const verificationTokens = {}; // { email: { token, expiresAt } }
+// Almacenamiento temporal para tokens de reset de contraseña
+const passwordResetTokens = {}; // { email: { token, expiresAt } }
 
 // Configuración del transporter de nodemailer
 const transporter = nodemailer.createTransport({
@@ -90,6 +92,57 @@ const verifyToken = (email, token) => {
   // Eliminar el token después de verificado
   delete verificationTokens[email];
   return true;
+};
+
+/**
+ * Genera un token para restablecer la contraseña
+ * @param {string} email - Email para el que generar el token
+ * @returns {string} - Token generado
+ */
+const generatePasswordResetToken = (email) => {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 1); // 1 hora de validez
+  
+  passwordResetTokens[email] = {
+    token,
+    expiresAt
+  };
+  
+  return token;
+};
+
+/**
+ * Verifica si un token de restablecimiento de contraseña es válido
+ * @param {string} email - Email asociado al token
+ * @param {string} token - Token a verificar
+ * @returns {boolean} - Si el token es válido
+ */
+const verifyPasswordResetToken = (email, token) => {
+  const storedData = passwordResetTokens[email];
+  
+  if (!storedData) {
+    return false;
+  }
+  
+  if (storedData.token !== token) {
+    return false;
+  }
+  
+  if (new Date() > storedData.expiresAt) {
+    delete passwordResetTokens[email];
+    return false;
+  }
+  
+  return true;
+};
+
+/**
+ * Elimina un token de restablecimiento de contraseña después de usarlo
+ * @param {string} email - Email asociado al token
+ */
+const consumePasswordResetToken = (email) => {
+  delete passwordResetTokens[email];
 };
 
 /**
@@ -203,10 +256,68 @@ const sendVerificationEmail = async (email, username) => {
   }
 };
 
+/**
+ * Envía un email con un enlace para restablecer la contraseña
+ * @param {string} email - Email del destinatario
+ * @param {string} username - Nombre de usuario
+ * @returns {Promise} - Promesa que se resuelve cuando el email se envía
+ */
+const sendPasswordResetEmail = async (email, username) => {
+  try {
+    const token = generatePasswordResetToken(email);
+    const resetLink = `${process.env.FRONTEND_URL}/auth/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Restablece tu contraseña - GamersHub',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #1a1a2e;">Restablecimiento de Contraseña</h1>
+          </div>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.5;">Hola <strong>${username || 'Usuario'}</strong>,</p>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.5;">Recibimos una solicitud para restablecer la contraseña de tu cuenta. Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #ff9f1c; color: #1a1a2e; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold; display: inline-block;">Restablecer mi contraseña</a>
+          </div>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.5;">O copia y pega el siguiente enlace en tu navegador:</p>
+          <p style="font-size: 14px; color: #666; word-break: break-all;">${resetLink}</p>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.5;">Este enlace expirará en 1 hora.</p>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.5;">Si no has solicitado este restablecimiento de contraseña, puedes ignorar este correo y tu cuenta seguirá segura.</p>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.5;">Saludos,<br>El equipo de GamersHub</p>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #777; font-size: 12px;">
+            <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+          </div>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email de restablecimiento de contraseña enviado:', info.response);
+    return { success: true, token };
+  } catch (error) {
+    console.error('Error al enviar email de restablecimiento de contraseña:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   validateEmailFormat,
   generateVerificationToken,
   verifyToken,
   sendVerificationEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  generatePasswordResetToken,
+  verifyPasswordResetToken,
+  consumePasswordResetToken,
+  sendPasswordResetEmail
 };

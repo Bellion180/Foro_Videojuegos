@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy } from "@angular/core" // Added OnInit, OnDestroy
+import { Component, OnInit, OnDestroy } from "@angular/core"
 import { RouterLink, RouterLinkActive } from "@angular/router"
 import { NgClass, CommonModule } from "@angular/common"
 import { AuthService } from "../../services/auth.service"
 import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component"
-import type { User } from "../../models/user.model"; // Added User import
+import type { User } from "../../models/user.model"
 
 @Component({
   selector: "app-header",
@@ -37,20 +37,24 @@ import type { User } from "../../models/user.model"; // Added User import
             <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a></li>
             <li><a routerLink="/forums" routerLinkActive="active">Foros</a></li>
             <li><a routerLink="/threads/latest" routerLinkActive="active">Últimas Discusiones</a></li>
-            <li class="theme-toggle-container"><app-theme-toggle></app-theme-toggle></li>            <ng-container *ngIf="authService.isAuthStatusKnown()">
-              <ng-container *ngIf="authService.isLoggedIn(); else notLoggedIn">
-                <li class="dropdown">
-                  <a class="dropdown-toggle">
+            <li class="theme-toggle-container"><app-theme-toggle></app-theme-toggle></li>            <ng-container *ngIf="authService.isAuthStatusKnown()">              <ng-container *ngIf="authService.isLoggedIn(); else notLoggedIn">
+                <li class="dropdown">                  <button type="button" class="dropdown-toggle" (click)="toggleDropdown($event)">
                     <span class="user-avatar">
                       <img [src]="currentUser?.avatar || '/assets/images/default-avatar.png'" alt="Avatar de usuario">
                     </span>
                     <span>{{ currentUser?.username || 'Mi Cuenta' }}</span>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a routerLink="/profile" routerLinkActive="active">Mi Perfil</a></li>
-                    <li><a routerLink="/profile/edit" routerLinkActive="active">Ajustes</a></li>
-                    <li><button (click)="logout()" class="logout-btn">Cerrar Sesión</button></li>
-                  </ul>
+                    <span class="dropdown-arrow" [class.rotated]="dropdownOpen">▼</span>
+                  </button>
+                  <!-- Usamos div.dropdown-container para asegurar posicionamiento correcto -->
+                  <div class="dropdown-container" [style.display]="dropdownOpen ? 'block' : 'none'" [style.backgroundColor]="'var(--card-bg)'">
+                    <div class="dropdown-menu">
+                      <ul>
+                        <li><a routerLink="/profile" routerLinkActive="active">Mi Perfil</a></li>
+                        <li><a routerLink="/profile/edit" routerLinkActive="active">Ajustes</a></li>
+                        <li><button type="button" (click)="logout()" class="logout-btn">Cerrar Sesión</button></li>
+                      </ul>
+                    </div>
+                  </div>
                 </li>
               </ng-container>
               <ng-template #notLoggedIn>
@@ -67,8 +71,7 @@ import type { User } from "../../models/user.model"; // Added User import
     </header>
   `,
   styles: [
-    `
-    .header {
+    `    .header {
       background-color: rgba(var(--header-bg-rgb), 0.85);
       backdrop-filter: blur(10px);
       box-shadow: var(--header-shadow);
@@ -83,7 +86,7 @@ import type { User } from "../../models/user.model"; // Added User import
       display: flex;
       align-items: center;
       position: relative;
-      overflow: hidden;
+      overflow: visible; /* Cambiado de hidden a visible para permitir que elementos sobresalgan */
     }
 
     .header.scrolled {
@@ -256,15 +259,36 @@ import type { User } from "../../models/user.model"; // Added User import
       background-color: var(--text-primary);
       border-radius: 10px;
       transition: all 0.3s;
-    }
-    .dropdown {
+    }    .dropdown {
       position: relative;
+      z-index: 2000; /* Aumentado significativamente */
     }
+    
     .dropdown-toggle {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--border-radius);
+      transition: all 0.3s;
+      color: var(--text-primary);
+    }
+    
+    .dropdown-toggle:hover {
+      background-color: rgba(126, 34, 206, 0.1);
+      color: var(--primary);
+    }    .dropdown-arrow {
+      font-size: 0.7rem;
+      margin-left: 0.2rem;
+      transition: transform 0.3s;
+      display: inline-block;
+    }
+    
+    .dropdown-arrow.rotated {
+      transform: rotate(180deg);
     }
     .user-avatar {
       width: 30px;
@@ -277,54 +301,51 @@ import type { User } from "../../models/user.model"; // Added User import
       width: 100%;
       height: 100%;
       object-fit: cover;
-    }
-    .dropdown-menu {
+    }    .dropdown-container {
       position: absolute;
       top: 100%;
       right: 0;
-      background-color: var(--background-primary);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
+      width: auto;
+      z-index: 9999; /* Extremadamente alto para asegurar visibilidad */
+      pointer-events: auto;
+    }    .dropdown-menu {
+      background-color: var(--card-bg) !important; /* Forzar color de fondo sólido */
+      border-radius: 12px; /* Esquinas más redondeadas */
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
       padding: 0.5rem;
-      min-width: 180px;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(10px);
-      transition: all 0.3s;
-    }
-    .dropdown:hover .dropdown-menu {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-    .dropdown-menu li {
+      min-width: 200px;
+      margin-top: 5px;
+      border: 2px solid var(--primary);
+      overflow: hidden; /* Asegurar que los elementos internos respeten el borde redondeado */
+    }.dropdown-menu li {
       margin: 0;
-    }
-    .dropdown-menu a, .dropdown-menu button {
+      border-bottom: 1px solid rgba(126, 34, 206, 0.1);
+    }    .dropdown-menu a, .dropdown-menu button {
       display: block;
       padding: 0.75rem 1rem;
       color: var(--text-primary);
       text-decoration: none;
-      border-radius: var(--border-radius);
+      border-radius: 8px; /* Bordes redondeados para los elementos del menú */
       transition: all 0.3s;
       text-align: left;
       width: 100%;
       font-size: 0.9rem;
       background: none;
       border: none;
+      font-weight: 500;
+      margin: 0.15rem 0; /* Pequeño margen para separar los elementos */
     }
     .dropdown-menu a:hover, .dropdown-menu button:hover {
-      background-color: rgba(126, 34, 206, 0.1);
-      color: var(--primary);
-    }
-    .logout-btn {
+      background-color: var(--primary) !important;
+      color: white !important;
+    }.logout-btn {
       color: var(--danger) !important;
+      font-weight: 500;
     }
     .logout-btn:hover {
-      background-color: rgba(239, 68, 68, 0.1) !important;
-      color: var(--danger) !important;
-    }
-    @media (max-width: 768px) {
+      background-color: var(--danger) !important;
+      color: white !important;
+    }@media (max-width: 768px) {
       .header-container {
         padding: 0 1rem;
       }
@@ -359,17 +380,32 @@ import type { User } from "../../models/user.model"; // Added User import
       .dropdown {
         width: 100%;
       }
-      .dropdown-menu {
+      .dropdown-container {
         position: static;
-        opacity: 1;
-        visibility: visible;
-        transform: none;
+        width: 100%;
+      }      .dropdown-menu {
         box-shadow: none;
-        padding: 0;
+        border: 2px solid var(--primary);
+        padding: 0.5rem 0;
         margin-top: 0.5rem;
         margin-left: 1rem;
         width: 100%;
+        background-color: var(--card-bg) !important;
+        border-radius: 12px; /* Esquinas más redondeadas, consistente con la versión de escritorio */
+        overflow: hidden; /* Asegurar que los elementos internos respeten el borde redondeado */
       }
+    }
+  .dropdown.active {
+      background-color: rgba(126, 34, 206, 0.05);
+      border-radius: var(--border-radius);
+    }    .dropdown-toggle:hover {
+      background-color: rgba(126, 34, 206, 0.1);
+      color: var(--primary);
+    }
+    
+    .dropdown.active .dropdown-toggle {
+      color: var(--primary);
+      background-color: rgba(126, 34, 206, 0.1);
     }
     .theme-toggle-container {
       display: flex;
@@ -383,19 +419,29 @@ export class HeaderComponent implements OnInit, OnDestroy { // Implemented OnIni
   isScrolled = false;
   mobileMenuOpen = false;
   currentUser: User | null | undefined;
-
-  constructor(public authService: AuthService) {}
-
-  ngOnInit() {
+  dropdownOpen = false; // Nueva propiedad para controlar el estado del dropdown
+  constructor(
+    public authService: AuthService
+  ) {}  ngOnInit() {
+    console.log('Header component initialized');
+    
+    // Obtener datos del usuario
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+      console.log('Current user updated:', this.currentUser?.username);
     });
 
-    window.addEventListener('scroll', this.onScroll, true);
+    // Registrar eventos
+    window.addEventListener('scroll', this.onScroll);
+    document.addEventListener('click', this.closeDropdownOnOutsideClick);
+    
+    console.log('Event listeners registered');
   }
 
   ngOnDestroy() {
-    window.removeEventListener('scroll', this.onScroll, true);
+    // Limpiar eventos
+    window.removeEventListener('scroll', this.onScroll);
+    document.removeEventListener('click', this.closeDropdownOnOutsideClick);
   }
 
   onScroll = () => {
@@ -404,10 +450,48 @@ export class HeaderComponent implements OnInit, OnDestroy { // Implemented OnIni
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen
+  }  toggleDropdown(event?: Event): void {
+    // Prevenir comportamientos por defecto del evento
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    // Cambiamos el estado con timeout para mejor rendimiento
+    setTimeout(() => {
+      this.dropdownOpen = !this.dropdownOpen;
+      console.log('Dropdown state toggled to:', this.dropdownOpen);
+      
+      // Añadir clase active al elemento dropdown para mejor visualización
+      if (this.dropdownOpen) {
+        const dropdownElement = document.querySelector('.dropdown');
+        if (dropdownElement) {
+          dropdownElement.classList.add('active');
+        }
+      } else {
+        const dropdownElement = document.querySelector('.dropdown');
+        if (dropdownElement) {
+          dropdownElement.classList.remove('active');
+        }
+      }
+    }, 0);
+  }// Cerrar el dropdown cuando se hace clic fuera
+  closeDropdownOnOutsideClick = (event: MouseEvent) => {
+    // Solo procedemos si el dropdown está abierto
+    if (!this.dropdownOpen) return;
+    
+    // Verificamos si el clic fue dentro del dropdown
+    const dropdownElement = document.querySelector('.dropdown');
+    if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
+      // Si el clic fue fuera, cerramos el dropdown
+      this.dropdownOpen = false;
+      console.log('Dropdown closed by outside click');
+    }
   }
 
   logout(): void {
     this.authService.logout()
     this.mobileMenuOpen = false
+    this.dropdownOpen = false
   }
 }
