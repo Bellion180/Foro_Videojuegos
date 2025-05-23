@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken")
 const { getRepository } = require("typeorm")
 const User = require("../entities/User")
 const crypto = require("crypto")
+const { sendWelcomeEmail, sendVerificationEmail, verifyToken, validateEmailFormat } = require("../services/emailService")
 
 // Almacén de refresh tokens (en producción debe ser una base de datos)
 // formato: { userId: { token: string, expiresAt: Date } }
@@ -57,6 +58,11 @@ exports.register = async (req, res) => {
     const userRepository = getRepository(User)
     const { username, email, password } = req.body
 
+    // Validar formato de email
+    if (!validateEmailFormat(email)) {
+      return res.status(400).json({ message: "Formato de email inválido" })
+    }
+
     // Verificar si el usuario ya existe
     const existingUser = await userRepository.findOne({
       where: [{ username }, { email }],
@@ -69,30 +75,31 @@ exports.register = async (req, res) => {
     // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Crear el nuevo usuario
+    // Generar token de verificación
+    const verificationResult = await sendVerificationEmail(email, username)
+    if (!verificationResult || !verificationResult.success) {
+      return res.status(500).json({ message: "Error al enviar el correo de verificación" })
+    }
+
+    // Crear el nuevo usuario con estado no verificado
     const newUser = userRepository.create({
       username,
       email,
       password: hashedPassword,
       role: "user",
+      isVerified: false,
+      verificationToken: verificationResult.token
     })
 
     await userRepository.save(newUser)
-
-    // Generar token JWT
-    const token = generateJwtToken(newUser)
-    
-    // Generar refresh token
-    const refreshToken = generateRefreshToken(newUser.id)
 
     // Eliminar la contraseña del objeto de respuesta
     const { password: _, ...userWithoutPassword } = newUser
 
     res.status(201).json({
-      message: "Usuario registrado exitosamente",
+      message: "Usuario registrado exitosamente. Por favor, verifica tu correo electrónico.",
       user: userWithoutPassword,
-      token,
-      refreshToken
+      requiresVerification: true
     })
   } catch (error) {
     console.error("Error en el registro:", error)
@@ -118,6 +125,15 @@ exports.login = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Credenciales inválidas" })
+    }
+
+    // Verificar si el usuario ha verificado su email
+    if (!user.isVerified) {
+      return res.status(401).json({ 
+        message: "Debes verificar tu correo electrónico antes de iniciar sesión", 
+        requiresVerification: true,
+        email: user.email
+      })
     }
 
     // Generar token JWT
@@ -233,3 +249,100 @@ exports.refreshToken = async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" })
   }
 }
+
+// Verificar email de usuario
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { email, token: verificationToken } = req.query;
+    
+    if (!email || !verificationToken) {
+      return res.status(400).json({ message: "Email y token son requeridos para la verificación" });
+    }
+    
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    
+    if (user.isVerified) {
+      return res.status(200).json({ message: "El email ya ha sido verificado anteriormente" });
+    }
+    
+    // Verificar el token
+    if (!verifyToken(email, verificationToken) || user.verificationToken !== verificationToken) {
+      return res.status(400).json({ message: "Token de verificación inválido o expirado" });
+    }
+    
+    // Actualizar usuario a verificado
+    user.isVerified = true;
+    user.verificationToken = null;
+    await userRepository.save(user);
+    
+    // Enviar correo de bienvenida
+    try {
+      await sendWelcomeEmail(email, user.username);
+    } catch (emailError) {
+      console.error('Error al enviar email de bienvenida:', emailError);
+      // No bloqueamos la verificación si falla el envío del correo
+    }
+    
+    // Generar tokens para inicio de sesión automático
+    const authToken = generateJwtToken(user);
+    const refreshToken = generateRefreshToken(user.id);
+    
+    // Preparar respuesta sin contraseña
+    const { password: _, ...userWithoutPassword } = user;
+    
+    return res.status(200).json({
+      message: "Email verificado exitosamente",
+      user: userWithoutPassword,
+      token: authToken,
+      refreshToken
+    });
+  } catch (error) {
+    console.error("Error al verificar email:", error);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+};
+
+// Reenviar email de verificación
+exports.resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: "El email es requerido" });
+    }
+    
+    const userRepository = getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    
+    if (user.isVerified) {
+      return res.status(400).json({ message: "Este email ya ha sido verificado" });
+    }
+    
+    // Generar y enviar nuevo token de verificación
+    const verificationResult = await sendVerificationEmail(email, user.username);
+    
+    if (!verificationResult || !verificationResult.success) {
+      return res.status(500).json({ message: "Error al enviar el correo de verificación" });
+    }
+    
+    // Actualizar el token de verificación en la base de datos
+    user.verificationToken = verificationResult.token;
+    await userRepository.save(user);
+    
+    return res.status(200).json({
+      message: "Correo de verificación reenviado exitosamente"
+    });
+  } catch (error) {
+    console.error("Error al reenviar verificación:", error);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+};

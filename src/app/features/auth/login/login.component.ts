@@ -15,11 +15,11 @@ import { NotificationService } from "../../../core/services/notification.service
         <div class="auth-header">
           <h1>Log In</h1>
           <p>Welcome back to GamersHub</p>
-        </div>
-
-        @if (errorMessage) {
+        </div>        @if (errorMessage) {
           <div class="error-message">{{ errorMessage }}</div>
-        }        <form class="auth-form" (ngSubmit)="login()" #loginForm="ngForm">
+        }
+        
+        <form class="auth-form" (ngSubmit)="login()" #loginForm="ngForm">
           <div class="form-group">
             <label for="email">Email</label>
             <input 
@@ -42,20 +42,27 @@ import { NotificationService } from "../../../core/services/notification.service
                 }
               </div>
             }
-          </div>
-
-          <div class="form-group">
+          </div>          <div class="form-group">
             <label for="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              [(ngModel)]="password" 
-              name="password" 
-              #passwordInput="ngModel"
-              required
-              minlength="6"
-              [class.input-error]="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)"
-            >
+            <div class="password-input-container">
+              <input 
+                [type]="showPassword ? 'text' : 'password'" 
+                id="password" 
+                [(ngModel)]="password" 
+                name="password" 
+                #passwordInput="ngModel"
+                required
+                minlength="6"
+                [class.input-error]="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)"
+              >              <button 
+                type="button" 
+                class="toggle-password" 
+                (click)="showPassword = !showPassword"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <span>{{ showPassword ? '🔒' : '👁️' }}</span>
+              </button>
+            </div>
             @if (passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)) {
               <div class="validation-error">
                 @if (passwordInput.errors?.['required']) {
@@ -68,7 +75,7 @@ import { NotificationService } from "../../../core/services/notification.service
             <div class="forgot-password">
               <a routerLink="/auth/forgot-password">Forgot password?</a>
             </div>
-          </div>          <div class="form-group">
+          </div><div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
               <span>Remember me</span>
@@ -138,13 +145,43 @@ import { NotificationService } from "../../../core/services/notification.service
     .form-group label {
       margin-bottom: 0.5rem;
       font-weight: 500;
-    }
-    .form-group input[type="email"],
-    .form-group input[type="password"] {
+    }    .form-group input[type="email"],
+    .form-group input[type="password"],
+    .form-group input[type="text"] {
       padding: 0.75rem;
       border: 1px solid #ddd;
       border-radius: 4px;
       transition: border-color 0.3s ease;
+    }
+    .password-input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-input-container input {
+      flex: 1;
+      width: 100%;
+    }    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .toggle-password:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    .toggle-password:active {
+      background-color: rgba(0, 0, 0, 0.1);
     }
     .form-group input.input-error {
       border-color: #dc2626;
@@ -217,13 +254,20 @@ export class LoginComponent {
   isLoading = false
   errorMessage = ""
   returnUrl = "/"
+  showPassword = false
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService  ) {
     this.route.queryParams.subscribe((params) => {
-      this.returnUrl = params["returnUrl"] || "/"
+      this.returnUrl = params["returnUrl"] || "/";
+      
+      // Check for verification_pending message
+      if (params["message"] === "verification_pending" && params["email"]) {
+        this.email = params["email"];
+        this.errorMessage = "Please verify your email before logging in. Check your inbox.";
+      }
     })
   }
 
@@ -244,9 +288,7 @@ export class LoginComponent {
     if (this.password.length < 6) {
       this.errorMessage = "La contraseña debe tener al menos 6 caracteres."
       return
-    }
-
-    this.isLoading = true
+    }    this.isLoading = true
     this.errorMessage = ""
     
     this.authService.login(this.email, this.password, this.rememberMe).subscribe({
@@ -257,7 +299,15 @@ export class LoginComponent {
       },
       error: (error) => {
         console.error('Login error:', error);
-        this.errorMessage = error.message || "Error en el inicio de sesión. Por favor, verifica tus credenciales."
+        
+        // Verificar si el error es por falta de verificación de email
+        if (error.error && error.error.requiresVerification) {
+          this.errorMessage = "Please verify your email before logging in.";
+          this.showResendVerificationOption(error.error.email || this.email);
+        } else {
+          this.errorMessage = error.message || "Error en el inicio de sesión. Por favor, verifica tus credenciales."
+        }
+        
         this.notificationService.error(this.errorMessage);
         this.isLoading = false
       },
@@ -265,5 +315,52 @@ export class LoginComponent {
         this.isLoading = false
       },
     })
+  }
+
+  // Mostrar opción para reenviar email de verificación
+  showResendVerificationOption(email: string): void {
+    // Añadir al DOM un botón de reenvío de verificación
+    const verificationMessage = document.createElement('div');
+    verificationMessage.className = 'verification-message';
+    verificationMessage.innerHTML = `
+      <p>Didn't receive the verification email?</p>
+      <button class="btn btn-secondary" id="resend-verification">Resend Verification Email</button>
+    `;
+    
+    // Si ya existe un mensaje de verificación, eliminarlo
+    const existingMessage = document.querySelector('.verification-message');
+    if (existingMessage) {
+      existingMessage.remove();
+    }
+    
+    // Insertar el mensaje después del mensaje de error
+    const errorMessage = document.querySelector('.error-message');
+    if (errorMessage && errorMessage.parentNode) {
+      errorMessage.parentNode.insertBefore(verificationMessage, errorMessage.nextSibling);
+      
+      // Configurar evento de clic en el botón
+      const resendButton = document.getElementById('resend-verification');
+      if (resendButton) {
+        resendButton.onclick = () => {
+          this.resendVerificationEmail(email);
+        };
+      }
+    }
+  }
+  
+  // Reenviar email de verificación
+  resendVerificationEmail(email: string): void {
+    this.isLoading = true;
+    
+    this.authService.resendVerification(email).subscribe({
+      next: () => {
+        this.notificationService.success('Verification email has been resent. Please check your inbox.');
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.notificationService.error(error.error?.message || 'Failed to resend verification email.');
+        this.isLoading = false;
+      }
+    });
   }
 }

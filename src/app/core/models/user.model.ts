@@ -8,4 +8,5 @@ export interface User {
   role: "user" | "moderator" | "admin"
   postCount?: number
   threadCount?: number
+  isVerified?: boolean
 }

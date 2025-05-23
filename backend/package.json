@@ -2,7 +2,8 @@
   "name": "gaming-forum-backend",
   "version": "1.0.0",
   "description": "Backend para el foro de gaming",
-  "main": "src/index.js",  "scripts": {
+  "main": "src/index.js",
+  "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "create-test-user": "node src/scripts/create-test-user.js",
@@ -19,6 +20,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.0",
     "mysql2": "^3.14.1",
+    "nodemailer": "^7.0.3",
     "typeorm": "^0.3.24"
   },
   "devDependencies": {

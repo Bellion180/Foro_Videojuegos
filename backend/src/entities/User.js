@@ -36,10 +36,18 @@ module.exports = new EntitySchema({
       type: "timestamp",
       default: () => "CURRENT_TIMESTAMP",
     },
-    role: {
-      type: "varchar",
+    role: {      type: "varchar",
       length: 20,
       default: "user",
+    },
+    isVerified: {
+      type: "boolean",
+      default: false,
+    },
+    verificationToken: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
     },
   },
   relations: {
